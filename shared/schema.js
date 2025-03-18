@@ -1,45 +1,43 @@
 // User schema
-const FLAVORS = [
-  'Mint',
+export const FLAVORS = [
+  'Cool Mint',
+  'Citrus Chill',
   'Wintergreen',
-  'Citrus',
+  'Spearmint',
+  'Peppermint',
   'Coffee',
   'Cinnamon',
-  'Menthol',
-  'Spearmint',
-  'Cool Mint',
-  'Peppermint',
   'Smooth',
-  'Original',
+  'Menthol'
 ];
 
-const MOODS = [
+export const MOODS = [
+  'Buzzing',
   'Focused',
-  'Relaxed',
+  'Chillaxed',
   'Energized',
-  'Social',
-  'Creative',
-  'Productive',
-  'Chill',
-  'Stressed',
-  'Happy',
-  'Tired',
+  'Stress-Relief',
+  'Social Hour',
+  'Post-Meal',
+  'Craving Crusher'
 ];
 
-const NICOTINE_STRENGTHS = [1.5, 3, 6, 8];
+export const NICOTINE_STRENGTHS = [1.5, 3, 6, 8];
 
-const REACTION_TYPES = [
-  'like',
-  'love',
-  'laugh',
-  'wow',
-  'sad',
-  'angry',
+export const REACTION_TYPES = [
+  'Nic Hit',
+  'Love',
+  'Impressive',
+  'Wow',
+  'Lol'
 ];
 
-module.exports = {
-  FLAVORS,
-  MOODS,
-  NICOTINE_STRENGTHS,
-  REACTION_TYPES,
-};
+// CommonJS compatibility
+if (typeof module !== 'undefined') {
+  module.exports = {
+    FLAVORS,
+    MOODS,
+    NICOTINE_STRENGTHS,
+    REACTION_TYPES,
+  };
+}

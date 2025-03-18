@@ -19,7 +19,7 @@ export default defineConfig({
       clientPort: 443,
       protocol: 'wss',
     },
-    allowedHosts: 'all'
+    allowedHosts: ['all', 'dcf7d47b-4775-40b2-8827-8eb803ada994-00-30xv80hicmhrp.riker.replit.dev']
   },
   resolve: {
     alias: {
