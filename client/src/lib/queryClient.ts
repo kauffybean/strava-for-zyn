@@ -19,10 +19,7 @@ export const apiRequest = async (
   url: string,
   body?: any
 ): Promise<Response> => {
-  const baseUrl = '';
-  const fullUrl = `${baseUrl}${url}`;
-  
-  const response = await fetch(fullUrl, {
+  const response = await fetch(url, {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -43,7 +40,7 @@ export const getQueryFn = (options: ApiRequestOptions = {}) => {
     const [url] = queryKey;
     
     try {
-      const response = await fetch(`${url}`, {
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

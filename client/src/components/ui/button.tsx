@@ -1,6 +1,7 @@
-import React, { forwardRef } from 'react';
+import * as React from 'react';
+import { forwardRef } from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+type ButtonVariant = 'primary' | 'secondary' | 'accent' | 'outline' | 'ghost' | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -8,6 +9,8 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: ButtonSize;
   fullWidth?: boolean;
   isLoading?: boolean;
+  iconLeft?: React.ReactNode;
+  iconRight?: React.ReactNode;
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
@@ -18,22 +21,27 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
   fullWidth = false,
   isLoading = false,
   disabled,
+  iconLeft,
+  iconRight,
   ...props
 }, ref) => {
-  const baseClasses = "ios-button flex items-center justify-center font-medium transition-colors focus:outline-none";
+  // Military-inspired base styling
+  const baseClasses = "ios-button flex items-center justify-center font-heading uppercase tracking-wide transition-all focus:outline-none active:scale-[0.98]";
   
   const variantClasses = {
-    primary: "bg-[#FF5E3A] text-white hover:bg-[#FF4425] active:bg-[#E5472F]",
-    secondary: "bg-[#FF9500] text-white hover:bg-[#FF8500] active:bg-[#E58600]",
-    outline: "bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50",
-    ghost: "bg-transparent text-gray-700 hover:bg-gray-50",
-    destructive: "bg-red-500 text-white hover:bg-red-600 active:bg-red-700"
+    primary: "bg-primary text-white hover:bg-primary/90 active:bg-primary/80 shadow-ios",
+    secondary: "bg-secondary text-white hover:bg-secondary/90 active:bg-secondary/80 shadow-ios",
+    accent: "bg-accent text-white hover:bg-accent/90 active:bg-accent/80 shadow-ios",
+    outline: "bg-transparent border-2 border-primary/20 text-primary hover:bg-primary/5 active:bg-primary/10",
+    ghost: "bg-transparent text-primary hover:bg-primary/5 active:bg-primary/10",
+    destructive: "bg-danger text-white hover:bg-danger/90 active:bg-danger/80 shadow-ios"
   };
   
+  // iOS-inspired sizing with rounded-ios from our custom theme
   const sizeClasses = {
-    sm: "text-xs px-3 py-2 rounded-lg",
-    md: "text-sm px-4 py-2.5 rounded-xl",
-    lg: "text-base px-5 py-3 rounded-xl"
+    sm: "text-xs px-3 py-2 rounded-ios h-9",
+    md: "text-sm px-4 py-2.5 rounded-ios h-11",
+    lg: "text-base px-5 py-3 rounded-ios h-12"
   };
   
   const widthClass = fullWidth ? "w-full" : "";
@@ -52,9 +60,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          Loading...
+          <span className="font-medium">Loading</span>
         </>
-      ) : children}
+      ) : (
+        <>
+          {iconLeft && <span className="mr-2">{iconLeft}</span>}
+          <span className="font-medium">{children}</span>
+          {iconRight && <span className="ml-2">{iconRight}</span>}
+        </>
+      )}
     </button>
   );
 });

@@ -2,48 +2,139 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Mobile optimization styles */
-html, body {
-  @apply antialiased text-gray-900 bg-gray-50;
-  -webkit-tap-highlight-color: transparent;
-  overscroll-behavior: none;
+/* Import military-inspired fonts */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Base styles with iOS optimizations */
+@layer base {
+  html, body {
+    @apply font-sans antialiased text-primary bg-background;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold text-primary tracking-wide;
+  }
+  
+  /* Safari-specific padding fixes */
+  input, textarea, select, button {
+    @apply appearance-none;
+  }
+  
+  /* Disable text selection for UI elements */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Safe area insets for iPhone notches and home bars */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
-/* Custom button styles */
+/* Component styles with militant/modern aesthetic */
 @layer components {
+  /* Button styles */
   .btn-primary {
-    @apply bg-primary text-white rounded-full px-4 py-2 font-semibold shadow-md hover:bg-primary/90 active:scale-95 transition-transform;
+    @apply bg-primary text-white rounded-ios px-4 py-3 font-semibold shadow-ios 
+    hover:bg-primary/90 active:scale-[0.98] transition-transform font-heading uppercase tracking-wide
+    text-sm flex items-center justify-center;
   }
   
   .btn-secondary {
-    @apply bg-white text-primary border border-primary rounded-full px-4 py-2 font-semibold hover:bg-gray-50 active:scale-95 transition-transform;
+    @apply bg-background text-primary border border-primary/20 rounded-ios px-4 py-3 
+    font-semibold hover:bg-background/80 active:scale-[0.98] transition-transform 
+    font-heading uppercase tracking-wide text-sm;
   }
   
-  /* iOS-style navigation bar */
-  .nav-bar {
-    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex items-center justify-around py-2 px-4 z-10;
+  .btn-accent {
+    @apply bg-accent text-white rounded-ios px-4 py-3 font-semibold shadow-ios 
+    hover:bg-accent/90 active:scale-[0.98] transition-transform font-heading uppercase tracking-wide
+    text-sm flex items-center justify-center;
   }
   
+  /* iOS-style bottom navigation bar */
+  .tab-bar {
+    @apply fixed bottom-0 left-0 right-0 bg-background border-t border-gray-200 
+           flex items-center justify-around py-2 px-4 z-50 safe-bottom;
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    background-color: rgba(242, 243, 244, 0.8);
+  }
+  
+  /* Navigation item styling */
   .nav-item {
-    @apply flex flex-col items-center justify-center p-2;
+    @apply flex flex-col items-center justify-center p-2 text-muted;
   }
   
   .nav-item-active {
-    @apply text-primary;
+    @apply text-primary font-semibold;
   }
   
-  /* iOS-style header */
+  /* iOS-style header/top bar */
   .ios-header {
-    @apply fixed top-0 left-0 right-0 bg-white border-b border-gray-200 flex items-center justify-between py-4 px-4 z-10;
+    @apply fixed top-0 left-0 right-0 flex items-center justify-between py-4 px-4 z-50 safe-top;
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    background-color: rgba(242, 243, 244, 0.8);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
   
   /* Main container accounting for fixed headers and nav */
   .main-container {
-    @apply pt-16 pb-20 px-4;
+    @apply pt-16 pb-24 px-4 bg-background min-h-screen;
   }
   
-  /* Card style for posts */
-  .post-card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-100 mb-4 overflow-hidden;
+  /* Military-inspired card style */
+  .tactical-card {
+    @apply bg-white rounded-ios shadow-card border border-primary/5 mb-4 overflow-hidden;
+  }
+  
+  /* Form input styling */
+  .tactical-input {
+    @apply w-full px-4 py-3 rounded-ios border border-gray-300 bg-white focus:ring-2 
+           focus:ring-secondary focus:border-transparent outline-none transition-all;
+  }
+  
+  /* Badge styling */
+  .tactical-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-pill text-xs font-medium
+           bg-primary/10 text-primary;
+  }
+  
+  .tactical-badge-accent {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-pill text-xs font-medium
+           bg-accent/10 text-accent;
+  }
+  
+  /* App logo styling */
+  .app-logo {
+    @apply font-heading font-bold text-2xl text-primary tracking-wider uppercase;
+  }
+}
+
+/* Utility classes */
+@layer utilities {
+  /* iOS-style large title */
+  .ios-large-title {
+    @apply text-2xl font-bold mb-2;
+  }
+  
+  /* iOS-style list */
+  .ios-list {
+    @apply divide-y divide-gray-100 rounded-ios overflow-hidden bg-white;
+  }
+  
+  .ios-list-item {
+    @apply flex items-center justify-between p-4;
   }
 }

@@ -1,4 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <circle cx="64" cy="64" r="60" fill="#FF5E3A"/>
-  <path d="M42 38L86 38L86 90L64 80L42 90Z" fill="#FFFFFF"/>
+  <!-- Tactical Shield/Badge Background -->
+  <path d="M64 10 L110 28 L110 70 C110 95 92 110 64 118 C36 110 18 95 18 70 L18 28 Z" fill="#2A3439"/>
+  <path d="M64 18 L102 34 L102 68 C102 88 86 100 64 106 C42 100 26 88 26 68 L26 34 Z" fill="#3A4449"/>
+  
+  <!-- Target Symbol -->
+  <circle cx="64" cy="64" r="34" fill="none" stroke="#71F0A9" stroke-width="4"/>
+  <circle cx="64" cy="64" r="24" fill="none" stroke="#71F0A9" stroke-width="3"/>
+  <circle cx="64" cy="64" r="14" fill="none" stroke="#71F0A9" stroke-width="2"/>
+  <circle cx="64" cy="64" r="4" fill="#71F0A9"/>
+  
+  <!-- Crosshair Lines -->
+  <line x1="64" y1="30" x2="64" y2="42" stroke="#71F0A9" stroke-width="2"/>
+  <line x1="64" y1="86" x2="64" y2="98" stroke="#71F0A9" stroke-width="2"/>
+  <line x1="30" y1="64" x2="42" y2="64" stroke="#71F0A9" stroke-width="2"/>
+  <line x1="86" y1="64" x2="98" y2="64" stroke="#71F0A9" stroke-width="2"/>
+  
+  <!-- Z (for Zyn) -->
+  <path d="M54 52 L74 52 L54 76 L74 76" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
