@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mobile optimization styles */
+html, body {
+  @apply antialiased text-gray-900 bg-gray-50;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* Custom button styles */
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white rounded-full px-4 py-2 font-semibold shadow-md hover:bg-primary/90 active:scale-95 transition-transform;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-primary border border-primary rounded-full px-4 py-2 font-semibold hover:bg-gray-50 active:scale-95 transition-transform;
+  }
+  
+  /* iOS-style navigation bar */
+  .nav-bar {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex items-center justify-around py-2 px-4 z-10;
+  }
+  
+  .nav-item {
+    @apply flex flex-col items-center justify-center p-2;
+  }
+  
+  .nav-item-active {
+    @apply text-primary;
+  }
+  
+  /* iOS-style header */
+  .ios-header {
+    @apply fixed top-0 left-0 right-0 bg-white border-b border-gray-200 flex items-center justify-between py-4 px-4 z-10;
+  }
+  
+  /* Main container accounting for fixed headers and nav */
+  .main-container {
+    @apply pt-16 pb-20 px-4;
+  }
+  
+  /* Card style for posts */
+  .post-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 mb-4 overflow-hidden;
+  }
+}
