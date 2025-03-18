@@ -7,19 +7,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Strong military-inspired colors
-        primary: '#2A3439', // Dark slate (main color)
-        secondary: '#406E8E', // Navy blue
-        accent: '#8FB339', // Military green
-        danger: '#C74545', // Militant red
-        warning: '#F9A826', // Tactical yellow
-        info: '#4D5D6C', // Steel blue
-        success: '#5D9C59', // Forest green
-        muted: '#8A8B8C', // Tactical gray
+        // Enhanced Zynfantry military-inspired colors
+        primary: '#1E272E', // Darker slate (main color) - more tactical
+        secondary: '#34495E', // Deep navy blue - more formal military
+        accent: '#7CAD3A', // Sharper military green - reminiscent of camo
+        danger: '#B33C3C', // Combat red - less bright, more serious
+        warning: '#E6A317', // Tactical alert yellow - better contrast
+        info: '#445566', // Military intelligence blue - more subdued 
+        success: '#48924A', // Deployment success green - calmer tone
+        muted: '#777A7E', // Tactical gray - improved for readability
+        border: 'rgba(30, 39, 46, 0.15)', // Border color derived from primary
         background: {
-          DEFAULT: '#F2F3F4', // Light gray for backgrounds
-          dark: '#1A1F24', // Dark mode background
+          DEFAULT: '#F7F8F9', // Light field gray for backgrounds - improved contrast
+          dark: '#171C21', // Dark mode background - deeper black
+          card: '#FFFFFF', // Card background
         },
+        card: '#FFFFFF', // Card background for compatibility
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

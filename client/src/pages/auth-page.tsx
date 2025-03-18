@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useLocation, Redirect } from 'wouter';
 import { Form, FormField } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { TextArea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
@@ -91,7 +92,7 @@ export default function AuthPage() {
                           type="submit" 
                           className="mt-6" 
                           fullWidth
-                          isLoading={loginMutation.isLoading}
+                          status={loginMutation.status}
                         >
                           ACCESS ZYNFANTRY
                         </Button>
@@ -105,10 +106,10 @@ export default function AuthPage() {
                 <p className="text-muted">
                   Need to enlist?{' '}
                   <button 
-                    className="text-accent font-medium hover:underline" 
+                    className="text-accent font-medium hover:underline font-heading" 
                     onClick={() => setIsLogin(false)}
                   >
-                    SIGN UP
+                    ENLIST NOW
                   </button>
                 </p>
               </div>
@@ -174,11 +175,11 @@ export default function AuthPage() {
                           label="BIO (OPTIONAL)"
                           methods={methods}
                         >
-                          <Input 
-                            as="textarea"
+                          <TextArea 
                             placeholder="Tell us about yourself" 
                             fullWidth
                             leftIcon={<FileText size={18} />}
+                            rows={3}
                           />
                         </FormField>
                         
@@ -187,7 +188,7 @@ export default function AuthPage() {
                           variant="accent"
                           className="mt-6" 
                           fullWidth
-                          isLoading={registerMutation.isLoading}
+                          status={registerMutation.status}
                         >
                           DEPLOY ACCOUNT
                         </Button>
@@ -201,10 +202,10 @@ export default function AuthPage() {
                 <p className="text-muted">
                   Already enlisted?{' '}
                   <button 
-                    className="text-accent font-medium hover:underline" 
+                    className="text-accent font-medium hover:underline font-heading" 
                     onClick={() => setIsLogin(true)}
                   >
-                    LOGIN
+                    LOGIN NOW
                   </button>
                 </p>
               </div>

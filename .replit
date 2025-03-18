@@ -31,8 +31,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node server/index.js"
-waitForPort = 5000
+args = "cd server && node index.js"
+waitForPort = 3000
 
 [[workflows.workflow]]
 name = "Client"
@@ -46,11 +46,15 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm start"
+args = "cd client && npm run dev"
 waitForPort = 5001
 
 [deployment]
 run = ["sh", "-c", "cd server && npm install && node index.ts"]
+
+[[ports]]
+localPort = 3000
+externalPort = 3001
 
 [[ports]]
 localPort = 5000

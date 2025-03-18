@@ -19,7 +19,11 @@ export const apiRequest = async (
   url: string,
   body?: any
 ): Promise<Response> => {
-  const response = await fetch(url, {
+  // API base URL for development - ensure URL starts with /
+  const baseUrl = 'http://localhost:5000';
+  const fullUrl = `${baseUrl}${url.startsWith('/') ? url : `/${url}`}`;
+  
+  const response = await fetch(fullUrl, {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -29,7 +33,8 @@ export const apiRequest = async (
   });
   
   if (!response.ok) {
-    throw new Error(response.statusText || 'Error making request');
+    const errorText = await response.text();
+    throw new Error(errorText || response.statusText || 'Error making request');
   }
   
   return response;
@@ -39,8 +44,12 @@ export const getQueryFn = (options: ApiRequestOptions = {}) => {
   return async ({ queryKey }: { queryKey: string[] }) => {
     const [url] = queryKey;
     
+    // API base URL for development
+    const baseUrl = 'http://localhost:5000';
+    const fullUrl = `${baseUrl}${url.startsWith('/') ? url : `/${url}`}`;
+    
     try {
-      const response = await fetch(url, {
+      const response = await fetch(fullUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +65,8 @@ export const getQueryFn = (options: ApiRequestOptions = {}) => {
       }
       
       if (!response.ok) {
-        throw new Error('Error fetching data');
+        const errorText = await response.text();
+        throw new Error(errorText || 'Error fetching data');
       }
       
       return await response.json();

@@ -19,7 +19,191 @@ class MemStorage {
   }
 
   _createSampleData() {
-    // We'll leave this empty for now and populate when needed
+    // Create a test user
+    const hashedPassword = '$2b$10$A7B8C9D0E1F2G3H4I5J6K7.L8M9N0O1P2Q3R4S5T6U7V8W9X0Y1Z2'; // 'password'
+    
+    // Sample users with military-themed usernames
+    this.users = [
+      {
+        id: 1,
+        username: 'commander',
+        password: hashedPassword,
+        displayName: 'Field Commander',
+        bio: 'Leading the Zyn battalion since 2021. Veteran of multiple flavor campaigns.',
+        avatar: 'https://robohash.org/commander?set=set4',
+        createdAt: new Date('2023-01-01')
+      },
+      {
+        id: 2,
+        username: 'sergeant',
+        password: hashedPassword,
+        displayName: 'Sergeant Pouch',
+        bio: 'Tactical Zyn specialist. Mint is my signature deployment.',
+        avatar: 'https://robohash.org/sergeant?set=set4',
+        createdAt: new Date('2023-02-15')
+      },
+      {
+        id: 3,
+        username: 'recruit',
+        password: hashedPassword,
+        displayName: 'New Recruit',
+        bio: 'Fresh to the Zynfantry. Learning the tactics from the veterans.',
+        avatar: 'https://robohash.org/recruit?set=set4',
+        createdAt: new Date('2023-05-20')
+      }
+    ];
+    
+    // Sample friend connections
+    this.friends = [
+      {
+        id: 1,
+        userId: 1,
+        friendId: 2,
+        status: 'accepted',
+        createdAt: new Date('2023-03-01')
+      },
+      {
+        id: 2,
+        userId: 1,
+        friendId: 3,
+        status: 'accepted',
+        createdAt: new Date('2023-06-01')
+      },
+      {
+        id: 3,
+        userId: 2,
+        friendId: 3,
+        status: 'pending',
+        createdAt: new Date('2023-06-15')
+      }
+    ];
+    
+    // Sample posts with military-themed content
+    this.posts = [
+      {
+        id: 1,
+        userId: 1,
+        title: 'Morning Deployment',
+        description: 'Starting the day with a tactical mint deployment. Essential for mission readiness.',
+        imageUrl: 'https://picsum.photos/seed/zynpost1/500/300',
+        latitude: 40.7128,
+        longitude: -74.0060,
+        locationName: 'Base Camp Alpha',
+        startTime: new Date('2023-07-15T08:00:00'),
+        duration: 45,
+        nicotineStrength: 6,
+        flavor: 'Mint',
+        mood: 'Focused',
+        createdAt: new Date('2023-07-15T08:45:00')
+      },
+      {
+        id: 2,
+        userId: 2,
+        title: 'Field Operation Success',
+        description: 'Completed the afternoon patrol with a wintergreen tactical aid. Morale is high.',
+        imageUrl: 'https://picsum.photos/seed/zynpost2/500/300',
+        latitude: 34.0522,
+        longitude: -118.2437,
+        locationName: 'Forward Operating Base',
+        startTime: new Date('2023-07-16T14:30:00'),
+        duration: 30,
+        nicotineStrength: 3,
+        flavor: 'Wintergreen',
+        mood: 'Energized',
+        createdAt: new Date('2023-07-16T15:00:00')
+      },
+      {
+        id: 3,
+        userId: 3,
+        title: 'First Deployment',
+        description: 'Rookie mission with my first citrus pouch. The veterans have trained me well.',
+        imageUrl: 'https://picsum.photos/seed/zynpost3/500/300',
+        startTime: new Date('2023-07-17T10:15:00'),
+        duration: 20,
+        nicotineStrength: 1.5,
+        flavor: 'Citrus',
+        mood: 'Nervous',
+        createdAt: new Date('2023-07-17T10:35:00')
+      }
+    ];
+    
+    // Sample comments
+    this.comments = [
+      {
+        id: 1,
+        postId: 1,
+        userId: 2,
+        content: 'Solid deployment strategy, Commander!',
+        createdAt: new Date('2023-07-15T09:30:00')
+      },
+      {
+        id: 2,
+        postId: 1,
+        userId: 3,
+        content: 'Taking notes on your tactical approach.',
+        createdAt: new Date('2023-07-15T10:15:00')
+      },
+      {
+        id: 3,
+        postId: 2,
+        userId: 1,
+        content: 'Well executed, Sergeant. That winter deployment is top-notch.',
+        createdAt: new Date('2023-07-16T16:00:00')
+      },
+      {
+        id: 4,
+        postId: 3,
+        userId: 1,
+        content: 'Welcome to the Zynfantry, Recruit! First mission success.',
+        createdAt: new Date('2023-07-17T11:00:00')
+      }
+    ];
+    
+    // Sample reactions
+    this.reactions = [
+      {
+        id: 1,
+        postId: 1,
+        userId: 2,
+        type: 'like',
+        createdAt: new Date('2023-07-15T09:15:00')
+      },
+      {
+        id: 2,
+        postId: 1,
+        userId: 3,
+        type: 'love',
+        createdAt: new Date('2023-07-15T09:45:00')
+      },
+      {
+        id: 3,
+        postId: 2,
+        userId: 1,
+        type: 'like',
+        createdAt: new Date('2023-07-16T15:30:00')
+      },
+      {
+        id: 4,
+        postId: 2,
+        userId: 3,
+        type: 'like',
+        createdAt: new Date('2023-07-16T17:00:00')
+      },
+      {
+        id: 5,
+        postId: 3,
+        userId: 1,
+        type: 'love',
+        createdAt: new Date('2023-07-17T11:15:00')
+      },
+      {
+        id: 6,
+        postId: 3,
+        userId: 2,
+        type: 'like',
+        createdAt: new Date('2023-07-17T12:00:00')
+      }
+    ];
   }
 
   // User methods

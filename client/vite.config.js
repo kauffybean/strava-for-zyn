@@ -11,10 +11,15 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:3000',
         changeOrigin: true
       }
-    }
+    },
+    hmr: {
+      clientPort: 443,
+      protocol: 'wss',
+    },
+    allowedHosts: 'all'
   },
   resolve: {
     alias: {

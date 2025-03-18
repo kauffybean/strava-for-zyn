@@ -9,9 +9,13 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: ButtonSize;
   fullWidth?: boolean;
   isLoading?: boolean;
+  status?: MutationStatus; // Support for react-query mutation status
   iconLeft?: React.ReactNode;
   iconRight?: React.ReactNode;
 };
+
+// For compatibility with react-query mutations
+type MutationStatus = 'idle' | 'loading' | 'success' | 'error' | 'pending';
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
   children,
@@ -20,6 +24,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
   size = 'md',
   fullWidth = false,
   isLoading = false,
+  status,
   disabled,
   iconLeft,
   iconRight,
@@ -45,16 +50,18 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
   };
   
   const widthClass = fullWidth ? "w-full" : "";
-  const disabledClass = (disabled || isLoading) ? "opacity-50 cursor-not-allowed" : "";
+  // Determine loading state from either direct prop or mutation status
+  const isLoadingState = isLoading || status === 'loading' || status === 'pending';
+  const disabledClass = (disabled || isLoadingState) ? "opacity-50 cursor-not-allowed" : "";
   
   return (
     <button
       ref={ref}
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClass} ${disabledClass} ${className}`}
-      disabled={disabled || isLoading}
+      disabled={disabled || isLoadingState}
       {...props}
     >
-      {isLoading ? (
+      {isLoadingState ? (
         <>
           <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
