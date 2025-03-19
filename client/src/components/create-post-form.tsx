@@ -13,9 +13,8 @@ import {
   MapPin, Target, Clock, Shield, Zap, File, ArrowRight,
   Upload, Camera, Crosshair, Compass, AlertTriangle, Map as MapIcon
 } from 'lucide-react';
-// Import Leaflet
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+// Import components
+import TacticalMapView from '@/components/TacticalMapView';
 
 // Military-style duration selector
 const DurationSelector = ({
@@ -55,121 +54,7 @@ interface LocationDetails {
   address?: string;
 }
 
-// Tactical Map Component with Leaflet
-const TacticalMapView = ({ 
-  coordinates, 
-  height = 200 
-}: { 
-  coordinates: { lat: number; lng: number }; 
-  height?: number 
-}) => {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const leafletMapRef = useRef<L.Map | null>(null);
-  const markerRef = useRef<L.Marker | null>(null);
-
-  useEffect(() => {
-    if (!mapRef.current) return;
-    
-    // Fix for Leaflet icons not loading properly
-    const fixLeafletIcon = () => {
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-        iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-      });
-    };
-    
-    fixLeafletIcon();
-
-    // Initialize map if not already done
-    if (!leafletMapRef.current) {
-      leafletMapRef.current = L.map(mapRef.current).setView([coordinates.lat, coordinates.lng], 13);
-      
-      // Add military-style tile layer
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(leafletMapRef.current);
-      
-      // Custom tactical marker
-      const tacticalIcon = L.divIcon({
-        className: 'custom-tactical-marker',
-        html: `<div class="tactical-pin bg-accent p-1 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="22" y1="12" x2="18" y2="12"></line>
-                  <line x1="6" y1="12" x2="2" y2="12"></line>
-                  <line x1="12" y1="6" x2="12" y2="2"></line>
-                  <line x1="12" y1="22" x2="12" y2="18"></line>
-                </svg>
-               </div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-      });
-      
-      markerRef.current = L.marker([coordinates.lat, coordinates.lng], { 
-        icon: tacticalIcon 
-      }).addTo(leafletMapRef.current);
-      
-      // Add radius circle to indicate tactical area
-      L.circle([coordinates.lat, coordinates.lng], {
-        radius: 500,
-        color: '#3b82f6',
-        fillColor: '#3b82f6',
-        fillOpacity: 0.15,
-        weight: 2,
-        dashArray: '5, 5',
-      }).addTo(leafletMapRef.current);
-    } else {
-      // Update map view and marker position
-      leafletMapRef.current.setView([coordinates.lat, coordinates.lng], 13);
-      if (markerRef.current) {
-        markerRef.current.setLatLng([coordinates.lat, coordinates.lng]);
-      }
-    }
-    
-    // Add tactical coordinate lines
-    const gridLayer = L.layerGroup().addTo(leafletMapRef.current);
-    
-    // Add tactical grid labels
-    const latLabel = L.marker([coordinates.lat, coordinates.lng], {
-      icon: L.divIcon({
-        className: 'tactical-label',
-        html: `<div class="bg-black/70 text-white text-xs p-1">LAT: ${coordinates.lat.toFixed(5)}</div>`,
-        iconSize: [100, 20],
-        iconAnchor: [100, 0]
-      })
-    }).addTo(gridLayer);
-    
-    const lngLabel = L.marker([coordinates.lat, coordinates.lng], {
-      icon: L.divIcon({
-        className: 'tactical-label',
-        html: `<div class="bg-black/70 text-white text-xs p-1">LNG: ${coordinates.lng.toFixed(5)}</div>`,
-        iconSize: [100, 20],
-        iconAnchor: [0, 20]
-      })
-    }).addTo(gridLayer);
-    
-    return () => {
-      if (leafletMapRef.current) {
-        gridLayer.clearLayers();
-      }
-    };
-  }, [coordinates]);
-
-  return (
-    <div className="border border-accent/30 rounded-md overflow-hidden relative">
-      <div className="absolute top-2 left-2 z-10 bg-black/60 text-xs text-white px-2 py-1 rounded-sm">
-        TACTICAL MAP
-      </div>
-      <div 
-        ref={mapRef} 
-        className="w-full" 
-        style={{ height: `${height}px` }}
-      ></div>
-    </div>
-  );
-};
+// Using the external TacticalMapView component imported at the top
 
 export function CreatePostForm() {
   const { toast } = useToast();

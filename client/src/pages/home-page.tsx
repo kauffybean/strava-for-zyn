@@ -9,7 +9,8 @@ import { Link } from 'wouter';
 import { 
   Target, Zap, Shield, Activity, 
   BarChart2, TrendingUp, Users, Plus,
-  AlertTriangle, Loader2
+  AlertTriangle, Loader2, BarChart,
+  Map as MapIcon
 } from 'lucide-react';
 import { formatRelativeTime } from '@/utils/format-utils';
 
@@ -33,29 +34,8 @@ type UserAnalytics = {
   lastOperation?: Date;
 };
 
-// Tactical Zyn Deployment Chart
-const TacticalChart = ({ data }: { data: number[] }) => {
-  const max = Math.max(...data);
-  
-  return (
-    <div className="flex items-end space-x-1 h-20">
-      {data.map((value, index) => {
-        const height = value === 0 ? 4 : (value / max) * 100;
-        return (
-          <div key={index} className="flex-1 flex flex-col items-center">
-            <div 
-              className="w-full bg-accent/30 rounded-sm transition-all duration-300 hover:bg-accent" 
-              style={{ height: `${height}%`, minHeight: '4px' }}
-            ></div>
-            <span className="text-xs mt-1 text-muted">
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'][index]}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
+import TacticalChart from '@/components/TacticalChart';
+import TacticalMapView from '@/components/TacticalMapView';
 
 // Military-inspired stats badge
 const StatBadge = ({ icon: Icon, label, value }: { icon: any, label: string, value: string | number }) => (
@@ -211,7 +191,7 @@ export default function HomePage() {
           ) : (
             <div className="bg-card rounded-ios p-6 shadow-card text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                <AreaChart size={28} className="text-primary" />
+                <BarChart size={28} className="text-primary" />
               </div>
               <h3 className="font-semibold mb-2">NO ANALYTICS AVAILABLE</h3>
               <p className="text-muted mb-4">Deploy your first Zyn to generate tactical insights</p>
