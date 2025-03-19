@@ -4,56 +4,646 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zynfantry - Front-line Pouchers</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪖</text></svg>">
     <style>
-        body {
+        :root {
+            --military-green: #4b5320;
+            --military-tan: #c2b280;
+            --military-dark: #1a1a1a;
+            --military-light: #f5f5f5;
+            --military-accent: #8a9a5b;
+            --camo-brown: #8c7e58;
+            --error-red: #ff4136;
+        }
+        
+        * {
+            box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: #1a1a1a;
-            color: #f5f5f5;
+        }
+        
+        body {
+            background-color: var(--military-dark);
+            color: var(--military-light);
             margin: 0;
             padding: 0;
+            min-height: 100vh;
+            background-image: 
+                linear-gradient(30deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1)),
+                linear-gradient(150deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1)),
+                linear-gradient(30deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1)),
+                linear-gradient(150deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1));
+            background-size: 80px 140px;
+            background-position: 0 0, 0 0, 40px 70px, 40px 70px;
+        }
+        
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Auth pages styles */
+        .auth-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .auth-form {
+            flex: 1;
+            padding: 2rem;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--military-dark);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
         }
-        .container {
-            text-align: center;
+        
+        .auth-hero {
+            flex: 1;
+            background-color: var(--military-green);
             padding: 2rem;
-            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: var(--military-light);
         }
-        h1 {
+        
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+            }
+            
+            .auth-hero {
+                padding: 1.5rem;
+                min-height: 250px;
+            }
+        }
+        
+        .logo-container {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background-color: var(--military-green);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--military-light);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            margin-bottom: 1rem;
+        }
+        
+        h1, h2 {
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
-            color: #ffffff;
+            color: inherit;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-align: center;
         }
+        
         .slogan {
             font-size: 1.25rem;
             margin-bottom: 2rem;
-            color: #d1d1d1;
+            color: var(--military-tan);
+            font-style: italic;
+            letter-spacing: 1px;
+            text-align: center;
         }
+        
         .card {
-            background-color: #2a2a2a;
+            background-color: rgba(42, 42, 42, 0.8);
+            border: 2px solid var(--military-accent);
             border-radius: 8px;
             padding: 1.5rem;
             margin-top: 2rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            position: relative;
+            max-width: 600px;
+            width: 100%;
         }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px dashed var(--camo-brown);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+        
         .military-accent {
-            color: #8a9a5b; /* Olive green */
+            color: var(--military-accent);
             font-weight: bold;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: var(--military-green);
+            color: var(--military-light);
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 0.5rem;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+        
+        .form-container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--military-dark);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--military-accent);
+            box-shadow: 0 0 0 2px rgba(138, 154, 91, 0.2);
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            background-color: var(--military-green);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #3a421a;
+        }
+        
+        .btn-accent {
+            background-color: var(--military-accent);
+        }
+        
+        .btn-accent:hover {
+            background-color: #7d8b52;
+        }
+        
+        .form-toggle {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--military-dark);
+        }
+        
+        .form-toggle a {
+            color: var(--military-accent);
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 0.25rem;
+        }
+        
+        .form-toggle a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: var(--error-red);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+        
+        .feature-list {
+            margin-top: 2rem;
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .feature-list li svg {
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+            margin-top: 0.25rem;
+        }
+        
+        .military-quote {
+            font-style: italic;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            color: var(--military-tan);
+        }
+        
+        /* Main content area styles */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .welcome-card {
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .footer {
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--military-tan);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Mobile optimization - iOS focused */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .logo {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+        }
+        
+        /* Dashboard styles */
+        .dashboard-container {
+            display: none;
+        }
+        
+        /* Tabs for switching between login and register */
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .auth-tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .auth-tab.active {
+            color: var(--military-accent);
+            border-bottom-color: var(--military-accent);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>ZYNFANTRY</h1>
-        <p class="slogan">Front-line Pouchers</p>
+    <div class="app-container">
+        <!-- Auth Section (visible initially) -->
+        <div id="auth-section" class="auth-container">
+            <div class="auth-form">
+                <div class="logo-container">
+                    <div class="logo">🪖</div>
+                    <h2>ZYNFANTRY</h2>
+                    <p>Front-line Pouchers</p>
+                </div>
+                
+                <div class="form-container">
+                    <div class="auth-tabs">
+                        <div class="auth-tab active" id="login-tab">LOGIN</div>
+                        <div class="auth-tab" id="register-tab">ENLIST</div>
+                    </div>
+                    
+                    <!-- Login Form -->
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-username">USERNAME</label>
+                            <input type="text" id="login-username" class="form-control" placeholder="Enter your username" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="login-password">PASSWORD</label>
+                            <input type="password" id="login-password" class="form-control" placeholder="Enter your password" required>
+                            <div id="login-error" class="error-message"></div>
+                        </div>
+                        
+                        <button type="submit" class="btn">ACCESS ZYNFANTRY</button>
+                    </form>
+                    
+                    <!-- Register Form (hidden initially) -->
+                    <form id="register-form" style="display: none;">
+                        <div class="form-group">
+                            <label for="register-username">USERNAME</label>
+                            <input type="text" id="register-username" class="form-control" placeholder="Choose a username" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="register-display-name">DISPLAY NAME</label>
+                            <input type="text" id="register-display-name" class="form-control" placeholder="Your full name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="register-password">PASSWORD</label>
+                            <input type="password" id="register-password" class="form-control" placeholder="Create a password" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="register-bio">BIO (OPTIONAL)</label>
+                            <textarea id="register-bio" class="form-control" rows="3" placeholder="Tell us about yourself"></textarea>
+                            <div id="register-error" class="error-message"></div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-accent">DEPLOY ACCOUNT</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="auth-hero">
+                <h1>ZYNFANTRY</h1>
+                <p class="slogan">FRONT-LINE POUCHERS</p>
+                
+                <ul class="feature-list">
+                    <li>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Track and log your tactical Zyn deployments
+                    </li>
+                    <li>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Join forces with other pouchers in your unit
+                    </li>
+                    <li>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Analyze strategic consumption patterns
+                    </li>
+                    <li>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Send signals and react to your squad's activities
+                    </li>
+                </ul>
+                
+                <div class="military-quote">
+                    "Join the elite pouch forces today and track your missions with precision."
+                </div>
+            </div>
+        </div>
         
-        <div class="card">
-            <p>The <span class="military-accent">tactical</span> social tracking app for Zyn consumption</p>
-            <p>Coming soon with full tracking, social features, and tactical analytics</p>
+        <!-- Dashboard Section (hidden initially) -->
+        <div id="dashboard-section" class="dashboard-container">
+            <!-- Dashboard content will be added here when user logs in -->
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 Zynfantry | Optimized for iOS Mobile</p>
         </div>
     </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Zynfantry landing page loaded successfully');
+            
+            // Get elements
+            const loginTab = document.getElementById('login-tab');
+            const registerTab = document.getElementById('register-tab');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const loginError = document.getElementById('login-error');
+            const registerError = document.getElementById('register-error');
+            
+            // Tab switching
+            loginTab.addEventListener('click', () => {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                loginError.textContent = '';
+                registerError.textContent = '';
+            });
+            
+            registerTab.addEventListener('click', () => {
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.style.display = 'block';
+                loginForm.style.display = 'none';
+                loginError.textContent = '';
+                registerError.textContent = '';
+            });
+            
+            // Login form submission
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const username = document.getElementById('login-username').value;
+                const password = document.getElementById('login-password').value;
+                
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Invalid username or password');
+                    }
+                    
+                    const userData = await response.json();
+                    console.log('Login successful:', userData);
+                    
+                    // Store user data and redirect to dashboard
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    showDashboard(userData);
+                    
+                } catch (error) {
+                    console.error('Login error:', error);
+                    loginError.textContent = error.message;
+                }
+            });
+            
+            // Register form submission
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const username = document.getElementById('register-username').value;
+                const displayName = document.getElementById('register-display-name').value;
+                const password = document.getElementById('register-password').value;
+                const bio = document.getElementById('register-bio').value;
+                
+                try {
+                    const response = await fetch('/api/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, displayName, password, bio })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Registration failed');
+                    }
+                    
+                    const userData = await response.json();
+                    console.log('Registration successful:', userData);
+                    
+                    // Store user data and redirect to dashboard
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    showDashboard(userData);
+                    
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    registerError.textContent = error.message;
+                }
+            });
+            
+            // Check if user is already logged in
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                try {
+                    const userData = JSON.parse(storedUser);
+                    checkSession(userData);
+                } catch (error) {
+                    console.error('Error parsing stored user data:', error);
+                    localStorage.removeItem('user');
+                }
+            }
+            
+            // Function to check if session is still valid
+            async function checkSession(userData) {
+                try {
+                    const response = await fetch('/api/user');
+                    
+                    if (response.ok) {
+                        const currentUser = await response.json();
+                        showDashboard(currentUser);
+                    } else {
+                        // Session expired or invalid, clear storage
+                        localStorage.removeItem('user');
+                    }
+                } catch (error) {
+                    console.error('Session check error:', error);
+                    // If there's an error (like network issues), don't log the user out
+                }
+            }
+            
+            // Function to show dashboard
+            function showDashboard(user) {
+                const authSection = document.getElementById('auth-section');
+                const dashboardSection = document.getElementById('dashboard-section');
+                
+                // Create dashboard content
+                dashboardSection.innerHTML = `
+                    <div class="main-content">
+                        <div class="welcome-card card">
+                            <div class="logo-container">
+                                <div class="logo">🪖</div>
+                            </div>
+                            <h1>MISSION CONTROL</h1>
+                            <p class="slogan">Welcome, ${user.displayName || user.username}</p>
+                            
+                            <p>Your tactical Zyn dashboard is currently under development.</p>
+                            <p>Soon you'll be able to track your pouches, connect with fellow troops, and analyze your consumption patterns.</p>
+                            
+                            <div style="margin-top: 2rem;">
+                                <span class="badge">Coming Soon</span>
+                            </div>
+                            
+                            <div style="margin-top: 2rem;">
+                                <button id="logout-button" class="btn">LOGOUT</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Show dashboard, hide auth
+                authSection.style.display = 'none';
+                dashboardSection.style.display = 'block';
+                
+                // Add logout functionality
+                document.getElementById('logout-button').addEventListener('click', async () => {
+                    try {
+                        await fetch('/api/logout', { method: 'POST' });
+                        localStorage.removeItem('user');
+                        
+                        // Show auth, hide dashboard
+                        authSection.style.display = 'flex';
+                        dashboardSection.style.display = 'none';
+                        
+                        // Clear form fields
+                        loginForm.reset();
+                        registerForm.reset();
+                        loginError.textContent = '';
+                        registerError.textContent = '';
+                        
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
