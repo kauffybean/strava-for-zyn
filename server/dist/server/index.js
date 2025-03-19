@@ -19,7 +19,7 @@ app.use((0, cors_1.default)({
 const server = (0, routes_1.registerRoutes)(app);
 // Serve client assets in production
 if (process.env.NODE_ENV === 'production') {
-    const clientPath = path_1.default.join(process.cwd(), 'client/dist');
+    const clientPath = path_1.default.join(process.cwd(), '../client/dist');
     if (fs_1.default.existsSync(clientPath)) {
         app.use(express_1.default.static(clientPath));
         app.get('*', (req, res) => {
