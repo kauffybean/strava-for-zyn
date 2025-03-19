@@ -31,7 +31,8 @@ args = "node app.js"
 waitForPort = 5000
 
 [deployment]
-run = ["sh", "-c", "cd server && npm install && node index.ts"]
+run = ["sh", "-c", "cd server && node dist/index.js"]
+build = ["sh", "-c", "npm install && cd server && tsc"]
 
 [[ports]]
 localPort = 3000
