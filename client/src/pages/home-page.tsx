@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getQueryFn } from '@/lib/queryClient';
 import { PostCard } from '@/components/post-card';
 import Navigation from '@/components/navigation';
 import { Post } from '@shared/schema';
 import { useAuth } from '@/hooks/use-auth';
+import { Link } from 'wouter';
 import { 
-  Target, Zap, Shield, Activity, Clock, Calendar, 
-  BarChart2, TrendingUp, Users, AreaChart, AlertTriangle, Loader2
+  Target, Zap, Shield, Activity, 
+  BarChart2, TrendingUp, Users, Plus,
+  AlertTriangle, Loader2
 } from 'lucide-react';
 import { formatRelativeTime } from '@/utils/format-utils';
 
@@ -20,26 +22,15 @@ type PostWithUser = Post & {
   } 
 };
 
-// Dummy analytics data - this would come from the backend in a real app
-const generateAnalytics = (userId: number) => {
-  const today = new Date();
-  return {
-    weeklyDeployments: Math.floor(Math.random() * 15) + 5,
-    tacticalScore: Math.floor(Math.random() * 100),
-    operationEfficiency: Math.floor(Math.random() * 100),
-    nicStrength: [1.5, 3, 6, 8][Math.floor(Math.random() * 4)],
-    preferredFlavor: ['Wintergreen', 'Cool Mint', 'Citrus', 'Cinnamon'][Math.floor(Math.random() * 4)],
-    weekStats: [
-      Math.floor(Math.random() * 5),
-      Math.floor(Math.random() * 5),
-      Math.floor(Math.random() * 5),
-      Math.floor(Math.random() * 5),
-      Math.floor(Math.random() * 5),
-      Math.floor(Math.random() * 5),
-      Math.floor(Math.random() * 5),
-    ],
-    lastOperation: new Date(today.getTime() - Math.floor(Math.random() * 86400000 * 3)),
-  };
+type UserAnalytics = {
+  totalPosts: number;
+  weeklyDeployments: number;
+  tacticalScore?: number;
+  avgDuration: number;
+  avgStrength: number;
+  topFlavor: string;
+  weekStats: number[];
+  lastOperation?: Date;
 };
 
 // Tactical Zyn Deployment Chart
@@ -81,14 +72,13 @@ const StatBadge = ({ icon: Icon, label, value }: { icon: any, label: string, val
 
 export default function HomePage() {
   const { user } = useAuth();
-  const [analytics, setAnalytics] = useState<any>(null);
   
-  // Generate analytics data for the current user
-  useEffect(() => {
-    if (user) {
-      setAnalytics(generateAnalytics(user.id));
-    }
-  }, [user]);
+  // Fetch user analytics
+  const { data: analytics, isLoading: isLoadingAnalytics } = useQuery<UserAnalytics>({
+    queryKey: ['/api/users/analytics'],
+    queryFn: getQueryFn(),
+    enabled: !!user,
+  });
   
   // Fetch posts for the feed
   const { data: posts = [], isLoading, isError, refetch } = useQuery<PostWithUser[]>({
@@ -171,12 +161,14 @@ export default function HomePage() {
             </span>
           </div>
           
-          {analytics && (
+          {analytics ? (
             <div className="bg-card rounded-ios p-4 shadow-card">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h3 className="font-medium text-primary">Operation Status: <span className="text-accent font-semibold">ACTIVE</span></h3>
-                  <p className="text-sm text-muted">Last Zyn deployed: {formatRelativeTime(analytics.lastOperation)}</p>
+                  {analytics.lastOperation && (
+                    <p className="text-sm text-muted">Last Zyn deployed: {formatRelativeTime(analytics.lastOperation)}</p>
+                  )}
                 </div>
                 <div className="flex items-center justify-center w-10 h-10 bg-accent/10 rounded-full">
                   <Activity size={20} className="text-accent" />
@@ -186,35 +178,50 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <StatBadge 
                   icon={BarChart2} 
-                  label="WEEK DEPLOYMENTS" 
-                  value={analytics.weeklyDeployments} 
+                  label="TOTAL DEPLOYMENTS" 
+                  value={analytics.totalPosts || 0} 
                 />
                 <StatBadge 
                   icon={Zap} 
-                  label="NIC STRENGTH" 
-                  value={`${analytics.nicStrength} mg`} 
+                  label="AVG STRENGTH" 
+                  value={`${analytics.avgStrength || 0} mg`} 
                 />
                 <StatBadge 
                   icon={Shield} 
                   label="TACTICAL SCORE" 
-                  value={`${analytics.tacticalScore}/100`} 
+                  value={`${analytics.tacticalScore || 75}/100`} 
                 />
                 <StatBadge 
                   icon={TrendingUp} 
-                  label="POUCH EFFICIENCY" 
-                  value={`${analytics.operationEfficiency}%`} 
+                  label="AVG DURATION" 
+                  value={`${analytics.avgDuration || 0} min`} 
                 />
               </div>
               
               <div className="mb-4">
                 <h4 className="text-sm font-medium mb-2">WEEKLY BATTLE RHYTHM</h4>
-                <TacticalChart data={analytics.weekStats} />
+                <TacticalChart data={analytics.weekStats || [0, 0, 0, 0, 0, 0, 0]} />
               </div>
               
               <div className="text-center py-2 px-4 bg-background rounded-ios border border-border/60">
                 <p className="text-xs uppercase font-medium text-muted">TACTICAL ASSESSMENT</p>
                 <p className="text-sm mt-1">"Ready for pouch deployment - maintain Zyn discipline"</p>
               </div>
+            </div>
+          ) : (
+            <div className="bg-card rounded-ios p-6 shadow-card text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                <AreaChart size={28} className="text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2">NO ANALYTICS AVAILABLE</h3>
+              <p className="text-muted mb-4">Deploy your first Zyn to generate tactical insights</p>
+              <Link 
+                href="/create" 
+                className="button-accent px-4 py-2 rounded-ios inline-flex items-center"
+              >
+                <Plus size={16} className="mr-2" />
+                LOG FIRST DEPLOYMENT
+              </Link>
             </div>
           )}
         </div>

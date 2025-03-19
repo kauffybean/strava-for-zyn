@@ -19,9 +19,8 @@ export const apiRequest = async (
   url: string,
   body?: any
 ): Promise<Response> => {
-  // API base URL for development - ensure URL starts with /
-  const baseUrl = 'http://localhost:5000';
-  const fullUrl = `${baseUrl}${url.startsWith('/') ? url : `/${url}`}`;
+  // Use relative URL to work in any environment
+  const fullUrl = url.startsWith('/') ? url : `/${url}`;
   
   const response = await fetch(fullUrl, {
     method,
@@ -44,9 +43,8 @@ export const getQueryFn = (options: ApiRequestOptions = {}) => {
   return async ({ queryKey }: { queryKey: string[] }) => {
     const [url] = queryKey;
     
-    // API base URL for development
-    const baseUrl = 'http://localhost:5000';
-    const fullUrl = `${baseUrl}${url.startsWith('/') ? url : `/${url}`}`;
+    // Use relative URL to work in any environment
+    const fullUrl = url.startsWith('/') ? url : `/${url}`;
     
     try {
       const response = await fetch(fullUrl, {
