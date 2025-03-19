@@ -29,7 +29,7 @@ const sessionConfig = {
   cookie: {
     secure: false, // set to true in production with HTTPS
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days for better persistence
   },
   store: storage.sessionStore
 };

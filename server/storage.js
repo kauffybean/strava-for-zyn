@@ -11,7 +11,9 @@ class MemStorage {
     this.comments = [];
     this.reactions = [];
     this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000, // prune expired entries every 24h
+      checkPeriod: 86400000 * 7, // prune expired entries every 7 days
+      stale: false, // don't delete stale sessions
+      ttl: 7 * 24 * 60 * 60 * 1000 // TTL of 7 days to match cookie maxAge
     });
     
     // Add sample data for development

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Post - Zynfantry</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪖</text></svg>">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
     <style>
         :root {
             --military-green: #4b5320;
@@ -338,6 +341,44 @@
         .error-message.show {
             display: block;
         }
+        
+        /* Map styles */
+        #location-map {
+            height: 300px;
+            width: 100%;
+            border-radius: 4px;
+            border: 2px solid #e0e0e0;
+            margin-top: 0.5rem;
+        }
+        
+        .location-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .location-button {
+            background-color: var(--military-green);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .location-button:hover {
+            background-color: #3a421a;
+        }
+        
+        .location-status {
+            font-size: 0.9rem;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -349,12 +390,12 @@
                 <div class="header-title">ZYNFANTRY</div>
             </div>
             <nav class="header-nav">
-                <a href="/" class="nav-link">
+                <a href="/feed.html" class="nav-link">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                     </svg>
-                    Home
+                    Feed
                 </a>
                 <a href="/post.html" class="nav-link" style="color: var(--military-tan);">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -454,6 +495,23 @@
                             <label for="post-location">LOCATION NAME (OPTIONAL)</label>
                             <input type="text" id="post-location" class="form-control" placeholder="Deployment location">
                         </div>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>DEPLOYMENT LOCATION</label>
+                        <div id="location-map"></div>
+                        <div class="location-controls">
+                            <button type="button" id="get-location" class="location-button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                                </svg>
+                                Use My Location
+                            </button>
+                            <span id="location-status" class="location-status">Click on the map to set your deployment location or use the button</span>
+                        </div>
+                        <input type="hidden" id="post-latitude">
+                        <input type="hidden" id="post-longitude">
                     </div>
                     
                     <div class="form-group full-width">
@@ -571,22 +629,13 @@
                     formData.imageUrl = "https://picsum.photos/seed/" + formData.title.replace(/\s/g, '') + "/500/300";
                 }
                 
-                // Optional: Add geolocation if available
-                if (navigator.geolocation) {
-                    try {
-                        const position = await new Promise((resolve, reject) => {
-                            navigator.geolocation.getCurrentPosition(resolve, reject, {
-                                enableHighAccuracy: true,
-                                timeout: 5000,
-                                maximumAge: 0
-                            });
-                        });
-                        
-                        formData.latitude = position.coords.latitude;
-                        formData.longitude = position.coords.longitude;
-                    } catch (error) {
-                        console.warn('Geolocation not available:', error);
-                    }
+                // Add location data from map if available
+                const latitude = document.getElementById('post-latitude').value;
+                const longitude = document.getElementById('post-longitude').value;
+                
+                if (latitude && longitude) {
+                    formData.latitude = parseFloat(latitude);
+                    formData.longitude = parseFloat(longitude);
                 }
                 
                 try {
@@ -607,8 +656,8 @@
                     const postData = await response.json();
                     console.log('Post created:', postData);
                     
-                    // Redirect to home page
-                    window.location.href = '/';
+                    // Redirect to feed page
+                    window.location.href = '/feed.html';
                     
                 } catch (error) {
                     console.error('Post creation error:', error);
@@ -616,6 +665,77 @@
                     errorMessage.classList.add('show');
                 }
             });
+        });
+    </script>
+    <!-- Leaflet Map Script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+            
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize the map
+            const map = L.map('location-map').setView([40.7128, -74.0060], 13); // Default to NYC
+            let marker;
+            
+            // Add the OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Function to update the marker position and form values
+            function updateLocation(lat, lng) {
+                // Update hidden form fields
+                document.getElementById('post-latitude').value = lat;
+                document.getElementById('post-longitude').value = lng;
+                
+                // Update status message
+                document.getElementById('location-status').textContent = `Location set: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                
+                // Update or create marker
+                if (marker) {
+                    marker.setLatLng([lat, lng]);
+                } else {
+                    marker = L.marker([lat, lng]).addTo(map);
+                }
+                
+                // Center map on marker
+                map.setView([lat, lng], 15);
+            }
+            
+            // Handle map clicks to set location
+            map.on('click', (e) => {
+                updateLocation(e.latlng.lat, e.latlng.lng);
+            });
+            
+            // Handle "Use My Location" button clicks
+            document.getElementById('get-location').addEventListener('click', () => {
+                if (navigator.geolocation) {
+                    document.getElementById('location-status').textContent = 'Getting your location...';
+                    
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            updateLocation(position.coords.latitude, position.coords.longitude);
+                        },
+                        (error) => {
+                            console.error('Geolocation error:', error);
+                            document.getElementById('location-status').textContent = 'Could not get your location. Please click on the map instead.';
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 5000,
+                            maximumAge: 0
+                        }
+                    );
+                } else {
+                    document.getElementById('location-status').textContent = 'Geolocation is not supported by your browser. Please click on the map instead.';
+                }
+            });
+            
+            // Fix map rendering issues by invalidating size after map is visible
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
         });
     </script>
 </body>

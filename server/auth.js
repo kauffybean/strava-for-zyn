@@ -35,6 +35,12 @@ function setupAuth(app) {
     secret: process.env.SESSION_SECRET || 'supersecret',
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    },
     store: storage.sessionStore,
   };
 
@@ -62,8 +68,13 @@ function setupAuth(app) {
   passport.deserializeUser(async (id, done) => {
     try {
       const user = await storage.getUser(id);
+      if (!user) {
+        console.warn(`User with id ${id} not found during session deserialize`);
+        return done(null, false);
+      }
       done(null, user);
     } catch (error) {
+      console.error('Session deserialize error:', error);
       done(error);
     }
   });
@@ -117,6 +128,19 @@ function setupAuth(app) {
     // Remove password from response
     const { password, ...userWithoutPassword } = req.user;
     res.json(userWithoutPassword);
+  });
+  
+  // Add a session check endpoint
+  app.get('/api/session-check', (req, res) => {
+    // Simple endpoint to validate session is working
+    if (req.isAuthenticated()) {
+      return res.status(200).json({ 
+        authenticated: true,
+        userId: req.user.id,
+        username: req.user.username
+      });
+    }
+    return res.status(200).json({ authenticated: false });
   });
 }
 

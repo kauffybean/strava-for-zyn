@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mission Feed - Zynfantry</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪖</text></svg>">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
     <style>
         :root {
             --military-green: #4b5320;
@@ -260,6 +263,17 @@
             gap: 0.5rem;
             font-size: 0.9rem;
             color: var(--military-tan);
+        }
+        
+        /* Map styles */
+        .post-map {
+            height: 180px;
+            width: 100%;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--military-accent);
+            overflow: hidden;
         }
         
         .post-actions {
@@ -586,6 +600,10 @@
     </style>
 </head>
 <body>
+    <!-- Leaflet map script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
     <div class="app-container">
         <!-- Header -->
         <header class="header">
@@ -909,6 +927,26 @@
                             <span class="badge">${post.nicotineStrength} mg</span>
                             <span class="badge">${post.mood}</span>
                         </div>
+                        
+                        ${post.latitude && post.longitude ? `
+                        <div class="post-map" id="map-${post.id}"></div>
+                        <script>
+                            // Initialize the map after the element is added to the DOM
+                            setTimeout(() => {
+                                const map = L.map('map-${post.id}').setView([${post.latitude}, ${post.longitude}], 13);
+                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                }).addTo(map);
+                                
+                                // Add a marker for the deployment location
+                                const marker = L.marker([${post.latitude}, ${post.longitude}]).addTo(map);
+                                marker.bindPopup("<b>${post.title}</b><br>${post.locationName || 'Deployment Location'}").openPopup();
+                                
+                                // Force map to recalculate size
+                                map.invalidateSize();
+                            }, 100);
+                        </script>
+                        ` : ''}
                         
                         ${post.description ? `<p class="post-description">${post.description}</p>` : ''}
                         
