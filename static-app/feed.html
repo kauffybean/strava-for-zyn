@@ -597,6 +597,56 @@
                 margin-top: 0.5rem;
             }
         }
+        
+        /* Military styling for map elements */
+        .leaflet-control-attribution {
+            background: rgba(26, 26, 26, 0.8) !important;
+            color: #8a9a5b !important;
+        }
+        
+        .leaflet-control-attribution a {
+            color: #c2b280 !important;
+        }
+        
+        .leaflet-control-zoom {
+            border: 2px solid #4b5320 !important;
+        }
+        
+        .leaflet-control-zoom a {
+            background-color: #1a1a1a !important;
+            color: #8a9a5b !important;
+        }
+        
+        .leaflet-popup-content-wrapper {
+            background-color: rgba(26, 26, 26, 0.9) !important;
+            color: #f5f5f5 !important;
+            border: 1px solid #4b5320 !important;
+        }
+        
+        .leaflet-popup-tip {
+            background-color: #4b5320 !important;
+        }
+        
+        .tactical-popup h3 {
+            color: #c2b280;
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            text-align: center;
+            border-bottom: 1px solid #4b5320;
+            padding-bottom: 5px;
+            letter-spacing: 1px;
+        }
+        
+        .tactical-popup .coordinates {
+            font-family: monospace;
+            font-size: 12px;
+            color: #8a9a5b;
+            background-color: rgba(26, 26, 26, 0.5);
+            padding: 4px;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -938,13 +988,31 @@
                             // Initialize the map after the element is added to the DOM
                             setTimeout(() => {
                                 const map = L.map('map-${post.id}').setView([${post.latitude}, ${post.longitude}], 13);
-                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                
+                                // Use military-themed dark map tiles
+                                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                                    subdomains: 'abcd',
+                                    maxZoom: 20
                                 }).addTo(map);
                                 
+                                // Create tactical icon for markers
+                                const tacticalIcon = L.icon({
+                                    iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGE5YTViIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9Imx1Y2lkZSBsdWNpZGUtY3Jvc3NoYWlyIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIgZmlsbD0iIzRiNTMyMCIgZmlsbC1vcGFjaXR5PSIwLjgiLz48bGluZSB4MT0iMjIiIHkxPSIxMiIgeDI9IjE4IiB5Mj0iMTIiLz48bGluZSB4MT0iNiIgeTE9IjEyIiB4Mj0iMiIgeTI9IjEyIi8+PGxpbmUgeDE9IjEyIiB5MT0iNiIgeDI9IjEyIiB5Mj0iMiIvPjxsaW5lIHgxPSIxMiIgeTE9IjIyIiB4Mj0iMTIiIHkyPSIxOCIvPjwvc3ZnPg==',
+                                    iconSize: [32, 32],
+                                    iconAnchor: [16, 16],
+                                    popupAnchor: [0, -16]
+                                });
+                                
                                 // Add a marker for the deployment location
-                                const marker = L.marker([${post.latitude}, ${post.longitude}]).addTo(map);
-                                marker.bindPopup("<b>${post.title}</b><br>${post.locationName || 'Deployment Location'}").openPopup();
+                                const marker = L.marker([${post.latitude}, ${post.longitude}], {icon: tacticalIcon}).addTo(map);
+                                marker.bindPopup(`
+                                    <div class="tactical-popup">
+                                        <h3>DEPLOYMENT POSITION</h3>
+                                        <div class="coordinates">LAT: ${post.latitude.toFixed(6)} | LNG: ${post.longitude.toFixed(6)}</div>
+                                        <div class="coordinates">${post.locationName || 'CLASSIFIED LOCATION'}</div>
+                                    </div>
+                                `).openPopup();
                                 
                                 // Force map to recalculate size
                                 map.invalidateSize();
