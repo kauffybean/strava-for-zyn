@@ -205,6 +205,44 @@ class DatabaseStorage {
       .orderBy(desc(schema.posts.createdAt));
   }
   
+  async getFriendPosts(userId) {
+    // Get all friend IDs
+    const friends = await this.getFriends(userId);
+    const friendIds = friends.map(f => f.id);
+    
+    if (friendIds.length === 0) {
+      return [];
+    }
+    
+    // Get posts from friends only
+    return await db
+      .select()
+      .from(schema.posts)
+      .where(
+        sql`${schema.posts.userId} IN (${friendIds.join(', ')})`
+      )
+      .orderBy(desc(schema.posts.createdAt));
+  }
+  
+  async getPublicPosts(limit = 20, offset = 0) {
+    // Get posts from all users ordered by recency
+    return await db
+      .select({
+        post: schema.posts,
+        user: {
+          id: schema.users.id,
+          username: schema.users.username,
+          displayName: schema.users.displayName,
+          avatar: schema.users.avatar
+        }
+      })
+      .from(schema.posts)
+      .innerJoin(schema.users, eq(schema.posts.userId, schema.users.id))
+      .orderBy(desc(schema.posts.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+  
   async getUserPosts(userId) {
     return await db
       .select()

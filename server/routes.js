@@ -38,14 +38,60 @@ function registerRoutes(app) {
       res.status(500).json({ error: "Failed to fetch friends" });
     }
   });
+  
+  // Get pending friend requests sent to the user
+  app.get("/api/friends/requests", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const requests = await storage.getFriendRequests(userId);
+      
+      // Get user details for each request
+      const requestsWithUsers = await Promise.all(requests.map(async (request) => {
+        const user = await storage.getUser(request.userId);
+        if (!user) return null;
+        
+        const { password, ...userWithoutPassword } = user;
+        return {
+          ...request,
+          sender: userWithoutPassword
+        };
+      }));
+      
+      // Filter out any null values (in case a user was deleted)
+      const validRequests = requestsWithUsers.filter(req => req !== null);
+      
+      res.json(validRequests);
+    } catch (error) {
+      console.error('Error fetching friend requests:', error);
+      res.status(500).json({ error: "Failed to fetch friend requests" });
+    }
+  });
 
   app.post("/api/friends/request", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user.id;
       const { friendId } = req.body;
-      const result = await storage.createFriendRequest(userId, friendId);
+      
+      // Validate friend ID
+      if (!friendId || isNaN(parseInt(friendId))) {
+        return res.status(400).json({ error: "Invalid friend ID" });
+      }
+      
+      // Check that user is not trying to add themselves
+      if (parseInt(friendId) === userId) {
+        return res.status(400).json({ error: "Cannot add yourself as a friend" });
+      }
+      
+      const result = await storage.createFriendRequest(userId, parseInt(friendId));
       res.status(201).json(result);
     } catch (error) {
+      if (error.message === "User or friend not found") {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message === "Friend request already exists") {
+        return res.status(409).json({ error: error.message });
+      }
+      console.error('Error creating friend request:', error);
       res.status(500).json({ error: "Failed to create friend request" });
     }
   });
@@ -53,15 +99,24 @@ function registerRoutes(app) {
   app.put("/api/friends/accept/:id", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user.id;
-      const friendId = parseInt(req.params.id);
-      const result = await storage.acceptFriendRequest(friendId, userId);
+      const requestId = parseInt(req.params.id);
+      
+      if (isNaN(requestId)) {
+        return res.status(400).json({ error: "Invalid request ID" });
+      }
+      
+      const result = await storage.acceptFriendRequest(requestId, userId);
       res.json(result);
     } catch (error) {
+      if (error.message === "Friend request not found") {
+        return res.status(404).json({ error: error.message });
+      }
+      console.error('Error accepting friend request:', error);
       res.status(500).json({ error: "Failed to accept friend request" });
     }
   });
 
-  // Post routes
+  // Post routes - Feed (combined posts from user and friends)
   app.get("/api/posts", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user.id;
@@ -69,6 +124,29 @@ function registerRoutes(app) {
       res.json(posts);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch posts" });
+    }
+  });
+  
+  // Friend-only posts
+  app.get("/api/posts/friends", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const posts = await storage.getFriendPosts(userId);
+      res.json(posts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch friend posts" });
+    }
+  });
+  
+  // Public feed (all recent posts, paginated)
+  app.get("/api/posts/public", isAuthenticated, async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit) || 20;
+      const offset = parseInt(req.query.offset) || 0;
+      const posts = await storage.getPublicPosts(limit, offset);
+      res.json(posts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch public posts" });
     }
   });
 

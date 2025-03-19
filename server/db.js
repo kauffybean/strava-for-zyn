@@ -6,10 +6,10 @@ const { sql } = require('drizzle-orm');
 // Create a PostgreSQL connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: 20,
+  ssl: false, // Disable SSL for local development
+  max: 5, // Reduce number of connections
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000, // Increase timeout
 });
 
 // Create a Drizzle ORM instance
