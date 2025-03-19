@@ -33,7 +33,7 @@ export async function initDatabase() {
 export async function createTables() {
   try {
     // Create users table if it doesn't exist
-    await sql`
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "users" (
         "id" SERIAL PRIMARY KEY,
         "username" VARCHAR(100) NOT NULL UNIQUE,
@@ -43,10 +43,10 @@ export async function createTables() {
         "avatar" TEXT,
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
-    `.execute(pool);
+    `);
 
     // Create friends table if it doesn't exist
-    await sql`
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "friends" (
         "id" SERIAL PRIMARY KEY,
         "userId" INTEGER NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
@@ -55,10 +55,10 @@ export async function createTables() {
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         UNIQUE ("userId", "friendId")
       );
-    `.execute(pool);
+    `);
 
     // Create posts table if it doesn't exist
-    await sql`
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "posts" (
         "id" SERIAL PRIMARY KEY,
         "userId" INTEGER NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
@@ -75,10 +75,10 @@ export async function createTables() {
         "mood" VARCHAR(100) NOT NULL,
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
-    `.execute(pool);
+    `);
 
     // Create comments table if it doesn't exist
-    await sql`
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "comments" (
         "id" SERIAL PRIMARY KEY,
         "postId" INTEGER NOT NULL REFERENCES "posts"("id") ON DELETE CASCADE,
@@ -86,10 +86,10 @@ export async function createTables() {
         "content" TEXT NOT NULL,
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
-    `.execute(pool);
+    `);
 
     // Create reactions table if it doesn't exist
-    await sql`
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "reactions" (
         "id" SERIAL PRIMARY KEY,
         "postId" INTEGER NOT NULL REFERENCES "posts"("id") ON DELETE CASCADE,
@@ -98,11 +98,11 @@ export async function createTables() {
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         UNIQUE ("postId", "userId")
       );
-    `.execute(pool);
+    `);
 
     // Create sessions table if it doesn't exist (for connect-pg-simple)
     await sql`
-      CREATE TABLE IF NOT EXISTS "session" (
+      CREATE TABLE IF NOT EXISTS "sessions" (
         "sid" VARCHAR NOT NULL PRIMARY KEY,
         "sess" JSON NOT NULL,
         "expire" TIMESTAMP(6) NOT NULL

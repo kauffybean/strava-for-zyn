@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { InsertPost, InsertComment, InsertReaction } from "@shared/schema";
+import { InsertPost, InsertComment, InsertReaction } from "../shared/schema";
 
 // Helper middleware to check if user is authenticated
 const isAuthenticated = (req: Request, res: Response, next: Function) => {

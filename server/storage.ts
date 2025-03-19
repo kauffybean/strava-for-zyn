@@ -3,7 +3,7 @@ import {
   Post, InsertPost, 
   Comment, InsertComment, 
   Reaction, InsertReaction 
-} from "@shared/schema";
+} from "../shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import connectPg from "connect-pg-simple";
