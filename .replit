@@ -17,7 +17,7 @@ args = "Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Client"
+args = "StaticApp"
 
 [[workflows.workflow]]
 name = "Server"
@@ -35,7 +35,7 @@ args = "cd server && node index.js"
 waitForPort = 3000
 
 [[workflows.workflow]]
-name = "Client"
+name = "StaticApp"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -46,8 +46,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm run dev"
-waitForPort = 5001
+args = "cd static-app && node server.js"
+waitForPort = 5000
 
 [deployment]
 run = ["sh", "-c", "cd server && npm install && node index.ts"]

@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '0.0.0.0',
-    port: 5001,
+    port: 5000,
     strictPort: true,
     proxy: {
       '/api': {
@@ -17,9 +17,10 @@ export default defineConfig({
     },
     hmr: {
       clientPort: 443,
-      protocol: 'wss',
     },
-    allowedHosts: ['all', 'dcf7d47b-4775-40b2-8827-8eb803ada994-00-30xv80hicmhrp.riker.replit.dev']
+    watch: {
+      usePolling: true,
+    }
   },
   resolve: {
     alias: {
