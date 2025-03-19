@@ -474,7 +474,7 @@
             console.log('Zynfantry landing page loaded successfully');
             
             // Initialize auth
-            const auth = new ZynfantryAuth();
+            // The auth variable is already created in auth-utils.js
             auth.init();
             
             // Get elements
@@ -598,6 +598,15 @@
                             
                             <div style="margin-top: 2rem;">
                                 <span class="badge">Coming Soon</span>
+                            </div>
+                            
+                            <div class="military-card" style="margin-top: 2rem; padding: 1rem; border: 1px solid var(--military-accent); background-color: rgba(0,0,0,0.2);">
+                                <h3 style="margin-top: 0; color: var(--military-accent); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">Developer Access</h3>
+                                <p style="font-size: 0.9rem; color: var(--military-light); margin-bottom: 1rem;">Access tactical development zones:</p>
+                                <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                                    <a href="/feed.html" class="btn" style="background-color: var(--military-dark); border: 1px solid var(--military-accent); font-size: 0.9rem; text-decoration: none;">FEED HQ</a>
+                                    <a href="/post.html" class="btn" style="background-color: var(--military-dark); border: 1px solid var(--military-accent); font-size: 0.9rem; text-decoration: none;">DEPLOYMENT ZONE</a>
+                                </div>
                             </div>
                             
                             <div style="margin-top: 2rem;">

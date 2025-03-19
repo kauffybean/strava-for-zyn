@@ -701,10 +701,13 @@
         </div>
     </div>
     
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+    <script src="/js/auth-utils.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Auth Utils
-            const auth = new ZynfantryAuth();
+            // Initialize Auth Utils - auth is already created in auth-utils.js
             
             // Protect this route - only authenticated users can access
             auth.protectRoute();
@@ -825,10 +828,8 @@
     </script>
     <!-- Leaflet Map Script -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
-    <script src="/js/auth-utils.js"></script>
-            
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize the map with military theme
