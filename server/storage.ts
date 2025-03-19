@@ -22,7 +22,7 @@ export interface IStorage {
   updateUser(id: number, user: Partial<User>): Promise<User>;
   
   // Friend methods
-  getFriends(userId: number): Promise<User[]>;
+  getFriends(userId: number): Promise<Omit<User, 'password'>[]>;
   getFriendRequests(userId: number): Promise<Friend[]>;
   createFriendRequest(userId: number, friendId: number): Promise<Friend>;
   acceptFriendRequest(requestId: number, userId: number): Promise<Friend>;
@@ -48,7 +48,7 @@ export interface IStorage {
   searchUsers(query: string): Promise<Omit<User, 'password'>[]>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 }
 
 // In-memory storage implementation
@@ -58,7 +58,7 @@ export class MemStorage implements IStorage {
   private posts: Post[] = [];
   private comments: Comment[] = [];
   private reactions: Reaction[] = [];
-  sessionStore: session.SessionStore;
+  sessionStore: any;
   
   constructor() {
     this.sessionStore = new MemoryStore({
@@ -99,7 +99,7 @@ export class MemStorage implements IStorage {
   }
   
   // Friend methods
-  async getFriends(userId: number): Promise<User[]> {
+  async getFriends(userId: number): Promise<Omit<User, 'password'>[]> {
     // Get all accepted friend connections where userId is either the user or the friend
     const friendships = this.friends.filter(f => 
       (f.userId === userId || f.friendId === userId) && f.status === 'accepted'
@@ -113,7 +113,7 @@ export class MemStorage implements IStorage {
     // Get the user objects for all friends
     return this.users
       .filter(user => friendIds.includes(user.id))
-      .map(({ password, ...user }) => user as User);
+      .map(({ password, ...user }) => user);
   }
   
   async getFriendRequests(userId: number): Promise<Friend[]> {
@@ -295,11 +295,15 @@ export class MemStorage implements IStorage {
       flavorCounts[post.flavor] = (flavorCounts[post.flavor] || 0) + 1;
     });
     const favoriteFlavorEntries = Object.entries(flavorCounts);
-    const favoriteFlavorEntry = favoriteFlavorEntries.length > 0 
-      ? favoriteFlavorEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max)
+    const favoriteFlavorEntry: [string, number] = favoriteFlavorEntries.length > 0 
+      ? favoriteFlavorEntries.reduce(
+          (max: [string, number], entry: [string, number]): [string, number] => 
+            entry[1] > max[1] ? entry : max, 
+          ['', 0] as [string, number]
+        )
       : ['None', 0];
     const favoriteFlavorPercentage = totalPosts > 0 
-      ? Math.round((favoriteFlavorEntry[1] / totalPosts) * 100) 
+      ? Math.round((Number(favoriteFlavorEntry[1]) / totalPosts) * 100) 
       : 0;
     
     // Calculate favorite mood
@@ -308,11 +312,15 @@ export class MemStorage implements IStorage {
       moodCounts[post.mood] = (moodCounts[post.mood] || 0) + 1;
     });
     const favoriteMoodEntries = Object.entries(moodCounts);
-    const favoriteMoodEntry = favoriteMoodEntries.length > 0 
-      ? favoriteMoodEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max)
+    const favoriteMoodEntry: [string, number] = favoriteMoodEntries.length > 0 
+      ? favoriteMoodEntries.reduce(
+          (max: [string, number], entry: [string, number]): [string, number] => 
+            entry[1] > max[1] ? entry : max,
+          ['', 0] as [string, number]
+        )
       : ['None', 0];
     const favoriteMoodPercentage = totalPosts > 0 
-      ? Math.round((favoriteMoodEntry[1] / totalPosts) * 100) 
+      ? Math.round((Number(favoriteMoodEntry[1]) / totalPosts) * 100) 
       : 0;
     
     // Get total reactions received
@@ -323,15 +331,19 @@ export class MemStorage implements IStorage {
     }
     
     // Calculate most active time of day
-    const hourCounts: Record<number, number> = {};
+    const hourCounts: Record<string, number> = {};
     userPosts.forEach(post => {
-      const hour = post.startTime.getHours();
+      const hour = post.startTime.getHours().toString();
       hourCounts[hour] = (hourCounts[hour] || 0) + 1;
     });
     const mostActiveHourEntries = Object.entries(hourCounts);
-    const mostActiveHourEntry = mostActiveHourEntries.length > 0 
-      ? mostActiveHourEntries.reduce((max, entry) => parseInt(entry[0]) > max[0] ? entry : max, [0, 0])
-      : [0, 0];
+    const mostActiveHourEntry: [string, number] = mostActiveHourEntries.length > 0 
+      ? mostActiveHourEntries.reduce(
+          (max: [string, number], entry: [string, number]): [string, number] => 
+            Number(entry[0]) > Number(max[0]) ? entry : max,
+          ['0', 0] as [string, number]
+        )
+      : ['0', 0];
     
     return {
       totalPosts,
@@ -363,7 +375,7 @@ export class MemStorage implements IStorage {
 
 // PostgreSQL storage implementation
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: any;
   
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 
@@ -414,7 +426,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Friend methods
-  async getFriends(userId: number): Promise<User[]> {
+  async getFriends(userId: number): Promise<Omit<User, 'password'>[]> {
     // Get all user ids who are friends with this user
     const friendships = await db
       .select()
@@ -536,7 +548,17 @@ export class DatabaseStorage implements IStorage {
       .where(eq(schema.posts.id, id))
       .limit(1);
     
-    return result.length > 0 ? result[0] : undefined;
+    if (result.length === 0) {
+      return undefined;
+    }
+    
+    // Ensure nicotineStrength is returned as a number
+    const post: Post = {
+      ...result[0],
+      nicotineStrength: Number(result[0].nicotineStrength)
+    };
+    
+    return post;
   }
   
   async getFeedPosts(userId: number): Promise<(Post & { user: Omit<User, 'password'> })[]> {
@@ -576,6 +598,8 @@ export class DatabaseStorage implements IStorage {
       const postUser = users.find(u => u.id === post.userId);
       return {
         ...post,
+        // Ensure nicotineStrength is a number
+        nicotineStrength: Number(post.nicotineStrength),
         user: postUser || {
           id: post.userId,
           username: 'unknown',
@@ -618,6 +642,8 @@ export class DatabaseStorage implements IStorage {
     // Map user to posts
     return posts.map(post => ({
       ...post,
+      // Ensure nicotineStrength is a number
+      nicotineStrength: Number(post.nicotineStrength),
       user: userData
     }));
   }
@@ -626,22 +652,28 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .insert(schema.posts)
       .values({
-        userId: post.userId,
+        user_id: post.userId,
         title: post.title,
         description: post.description,
-        imageUrl: post.imageUrl,
+        image_url: post.imageUrl,
         latitude: post.latitude,
         longitude: post.longitude,
-        locationName: post.locationName,
-        startTime: post.startTime || new Date(),
+        location_name: post.locationName,
+        start_time: post.startTime || new Date(),
         duration: post.duration,
-        nicotineStrength: post.nicotineStrength,
+        nicotine_strength: Number(post.nicotineStrength), // Ensure number type
         flavor: post.flavor,
         mood: post.mood
       })
       .returning();
     
-    return result[0];
+    // Ensure the nicotineStrength is returned as a number
+    const returnPost: Post = {
+      ...result[0],
+      nicotineStrength: Number(result[0].nicotineStrength)
+    };
+    
+    return returnPost;
   }
   
   // Comment methods
@@ -681,8 +713,8 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .insert(schema.comments)
       .values({
-        postId: comment.postId,
-        userId: comment.userId,
+        post_id: comment.postId,
+        user_id: comment.userId,
         content: comment.content
       })
       .returning();
@@ -760,8 +792,8 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .insert(schema.reactions)
       .values({
-        postId: reaction.postId,
-        userId: reaction.userId,
+        post_id: reaction.postId,
+        user_id: reaction.userId,
         type: reaction.type
       })
       .returning();
@@ -785,11 +817,15 @@ export class DatabaseStorage implements IStorage {
       flavorCounts[post.flavor] = (flavorCounts[post.flavor] || 0) + 1;
     });
     const favoriteFlavorEntries = Object.entries(flavorCounts);
-    const favoriteFlavorEntry = favoriteFlavorEntries.length > 0 
-      ? favoriteFlavorEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max)
+    const favoriteFlavorEntry: [string, number] = favoriteFlavorEntries.length > 0 
+      ? favoriteFlavorEntries.reduce(
+          (max: [string, number], entry: [string, number]): [string, number] => 
+            entry[1] > max[1] ? entry : max, 
+          ['', 0] as [string, number]
+        )
       : ['None', 0];
     const favoriteFlavorPercentage = totalPosts > 0 
-      ? Math.round((favoriteFlavorEntry[1] / totalPosts) * 100) 
+      ? Math.round((Number(favoriteFlavorEntry[1]) / totalPosts) * 100) 
       : 0;
     
     // Calculate favorite mood
@@ -798,11 +834,15 @@ export class DatabaseStorage implements IStorage {
       moodCounts[post.mood] = (moodCounts[post.mood] || 0) + 1;
     });
     const favoriteMoodEntries = Object.entries(moodCounts);
-    const favoriteMoodEntry = favoriteMoodEntries.length > 0 
-      ? favoriteMoodEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max)
+    const favoriteMoodEntry: [string, number] = favoriteMoodEntries.length > 0 
+      ? favoriteMoodEntries.reduce(
+          (max: [string, number], entry: [string, number]): [string, number] => 
+            entry[1] > max[1] ? entry : max,
+          ['', 0] as [string, number]
+        )
       : ['None', 0];
     const favoriteMoodPercentage = totalPosts > 0 
-      ? Math.round((favoriteMoodEntry[1] / totalPosts) * 100) 
+      ? Math.round((Number(favoriteMoodEntry[1]) / totalPosts) * 100) 
       : 0;
     
     // Get total reactions
@@ -813,15 +853,19 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Most active hour
-    const hourCounts: Record<number, number> = {};
+    const hourCounts: Record<string, number> = {};
     userPosts.forEach(post => {
-      const hour = new Date(post.startTime).getHours();
+      const hour = new Date(post.startTime).getHours().toString();
       hourCounts[hour] = (hourCounts[hour] || 0) + 1;
     });
     const mostActiveHourEntries = Object.entries(hourCounts);
-    const mostActiveHourEntry = mostActiveHourEntries.length > 0 
-      ? mostActiveHourEntries.reduce((max, entry) => parseInt(entry[0]) > max[0] ? entry : max, [0, 0])
-      : [0, 0];
+    const mostActiveHourEntry: [string, number] = mostActiveHourEntries.length > 0 
+      ? mostActiveHourEntries.reduce(
+          (max: [string, number], entry: [string, number]): [string, number] => 
+            Number(entry[0]) > Number(max[0]) ? entry : max,
+          ['0', 0] as [string, number]
+        )
+      : ['0', 0];
     
     return {
       totalPosts,
@@ -833,7 +877,7 @@ export class DatabaseStorage implements IStorage {
       favoriteMoodCount: favoriteMoodEntry[1],
       favoriteMoodPercentage,
       totalReactions,
-      mostActiveHour: parseInt(mostActiveHourEntry[0].toString()),
+      mostActiveHour: parseInt(mostActiveHourEntry[0]),
       mostActiveHourCount: mostActiveHourEntry[1],
     };
   }

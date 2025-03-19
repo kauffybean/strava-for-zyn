@@ -101,13 +101,13 @@ export async function createTables() {
     `);
 
     // Create sessions table if it doesn't exist (for connect-pg-simple)
-    await sql`
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "sessions" (
         "sid" VARCHAR NOT NULL PRIMARY KEY,
         "sess" JSON NOT NULL,
         "expire" TIMESTAMP(6) NOT NULL
       );
-    `.execute(pool);
+    `);
 
     console.log('Database tables created or verified');
     return true;

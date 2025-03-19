@@ -63,7 +63,8 @@ export function setupAuth(app: Express) {
     try {
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
-        return res.status(400).json({ error: "Username already exists" });
+        res.status(400).json({ error: "Username already exists" });
+        return;
       }
 
       const user = await storage.createUser({
@@ -73,7 +74,10 @@ export function setupAuth(app: Express) {
       });
 
       req.login(user, (err) => {
-        if (err) return next(err);
+        if (err) {
+          next(err);
+          return;
+        }
         res.status(201).json(user);
       });
     } catch (error) {
@@ -87,13 +91,19 @@ export function setupAuth(app: Express) {
 
   app.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
-      if (err) return next(err);
+      if (err) {
+        next(err);
+        return;
+      }
       res.sendStatus(200);
     });
   });
 
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    if (!req.isAuthenticated()) {
+      res.sendStatus(401);
+      return;
+    }
     res.json(req.user);
   });
 }

@@ -3,8 +3,8 @@ export type User = {
   username: string;
   password: string; // hashed
   displayName: string;
-  bio?: string;
-  avatar?: string;
+  bio?: string | null;
+  avatar?: string | null;
   createdAt: Date;
 };
 
@@ -33,13 +33,13 @@ export type Post = {
   id: number;
   userId: number;
   title: string;
-  description?: string;
-  imageUrl?: string;
-  latitude?: number;
-  longitude?: number;
-  locationName?: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
+  locationName?: string | null;
   startTime: Date;
-  duration?: number; // in minutes
+  duration?: number | null; // in minutes
   nicotineStrength: number; // in mg
   flavor: string;
   mood: string;

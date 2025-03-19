@@ -132,13 +132,15 @@ export function registerRoutes(app: Express): Server {
       const postId = parseInt(req.params.id);
       const post = await storage.getPost(postId);
       if (!post) {
-        return res.status(404).json({ error: "Post not found" });
+        res.status(404).json({ error: "Post not found" });
+        return;
       }
       
       // Get user who created the post
       const postUser = await storage.getUser(post.userId);
       if (!postUser) {
-        return res.status(404).json({ error: "Post user not found" });
+        res.status(404).json({ error: "Post user not found" });
+        return;
       }
       
       // Remove password from user
@@ -236,9 +238,11 @@ export function registerRoutes(app: Express): Server {
           if (req.user && req.user.id === userId) {
             // Use the current user object from session
             const { password, ...userWithoutPassword } = req.user;
-            return res.json(userWithoutPassword);
+            res.json(userWithoutPassword);
+            return;
           }
-          return res.status(404).json({ error: "User not found" });
+          res.status(404).json({ error: "User not found" });
+          return;
         }
         
         // Remove password from response
@@ -250,7 +254,8 @@ export function registerRoutes(app: Express): Server {
         // Fallback to user from session if it matches the requested ID
         if (req.user && req.user.id === userId) {
           const { password, ...userWithoutPassword } = req.user;
-          return res.json(userWithoutPassword);
+          res.json(userWithoutPassword);
+          return;
         }
         
         res.status(500).json({ error: "Failed to fetch user" });
@@ -277,27 +282,17 @@ export function registerRoutes(app: Express): Server {
     try {
       if (!req.isAuthenticated() || !req.user || !req.user.id) {
         console.log('GET /api/users/analytics - No authenticated user found in request');
-        return res.status(401).json({ error: "Not authenticated" });
+        res.status(401).json({ error: "Not authenticated" });
+        return;
       }
       
       const userId = req.user.id;
       console.log('GET /api/users/analytics - Fetching analytics for userId:', userId);
       
       try {
-        // Create a simpler analytics object with just the basic data needed
-        // This is a temporary fix to bypass any database issues
-        const mockAnalytics = {
-          totalPosts: 2,
-          weeklyDeployments: 2,
-          tacticalScore: 85,
-          avgDuration: 22.5,
-          avgStrength: 1.5,
-          topFlavor: 'Cool Mint',
-          weekStats: [1, 0, 0, 0, 0, 1, 0],
-          lastOperation: new Date().toISOString()
-        };
-        
-        res.json(mockAnalytics);
+        // Get analytics from storage
+        const analytics = await storage.getUserAnalytics(userId);
+        res.json(analytics);
       } catch (analyticsError) {
         console.error('GET /api/users/analytics - Error fetching analytics:', analyticsError);
         res.status(500).json({ error: "Failed to fetch user analytics" });
@@ -324,7 +319,8 @@ export function registerRoutes(app: Express): Server {
     try {
       const query = req.query.q as string;
       if (!query || query.length < 2) {
-        return res.json([]);
+        res.json([]);
+        return;
       }
       const users = await storage.searchUsers(query);
       res.json(users);
