@@ -9,8 +9,12 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 
 app.use(express.json());
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: function(origin, callback) {
+    callback(null, true); // Allow all origins in development
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Register API routes
