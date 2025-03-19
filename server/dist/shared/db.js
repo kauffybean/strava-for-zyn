@@ -1,81 +1,56 @@
-const { pgTable, serial, varchar, text, timestamp, integer, decimal, unique, boolean } = require('drizzle-orm/pg-core');
-
-// Create the users table
-const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  username: varchar('username', { length: 100 }).notNull().unique(),
-  password: varchar('password', { length: 255 }).notNull(),
-  displayName: varchar('displayName', { length: 100 }).notNull(),
-  bio: text('bio'),
-  avatar: text('avatar'),
-  createdAt: timestamp('createdAt', { withTimezone: true }).defaultNow().notNull()
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sessions = exports.reactions = exports.comments = exports.posts = exports.friends = exports.users = void 0;
+const pg_core_1 = require("drizzle-orm/pg-core");
+// Use appropriate schema based on environment
+exports.users = (0, pg_core_1.pgTable)('users', {
+    id: (0, pg_core_1.serial)('id').primaryKey(),
+    username: (0, pg_core_1.text)('username').notNull().unique(),
+    password: (0, pg_core_1.text)('password').notNull(),
+    displayName: (0, pg_core_1.text)('displayName').notNull(),
+    bio: (0, pg_core_1.text)('bio'),
+    avatar: (0, pg_core_1.text)('avatar'),
+    createdAt: (0, pg_core_1.timestamp)('createdAt').defaultNow().notNull()
 });
-
-// Create the friends table
-const friends = pgTable('friends', {
-  id: serial('id').primaryKey(),
-  userId: integer('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  friendId: integer('friendId').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  status: varchar('status', { length: 20 }).notNull(), // 'pending', 'accepted'
-  createdAt: timestamp('createdAt', { withTimezone: true }).defaultNow().notNull()
-}, (table) => {
-  return {
-    userFriendIdx: unique('user_friend_idx').on(table.userId, table.friendId)
-  };
+exports.friends = (0, pg_core_1.pgTable)('friends', {
+    id: (0, pg_core_1.serial)('id').primaryKey(),
+    userId: (0, pg_core_1.integer)('userId').notNull().references(() => exports.users.id),
+    friendId: (0, pg_core_1.integer)('friendId').notNull().references(() => exports.users.id),
+    status: (0, pg_core_1.text)('status', { enum: ['pending', 'accepted'] }).notNull(),
+    createdAt: (0, pg_core_1.timestamp)('createdAt').defaultNow().notNull()
 });
-
-// Create the posts table
-const posts = pgTable('posts', {
-  id: serial('id').primaryKey(),
-  userId: integer('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  title: varchar('title', { length: 255 }).notNull(),
-  description: text('description'),
-  imageUrl: text('imageUrl'),
-  latitude: decimal('latitude'),
-  longitude: decimal('longitude'),
-  locationName: varchar('locationName', { length: 255 }),
-  startTime: timestamp('startTime', { withTimezone: true }).notNull(),
-  duration: integer('duration'), // in minutes
-  nicotineStrength: decimal('nicotineStrength').notNull(),
-  flavor: varchar('flavor', { length: 100 }).notNull(),
-  mood: varchar('mood', { length: 100 }).notNull(),
-  createdAt: timestamp('createdAt', { withTimezone: true }).defaultNow().notNull()
+exports.posts = (0, pg_core_1.pgTable)('posts', {
+    id: (0, pg_core_1.serial)('id').primaryKey(),
+    userId: (0, pg_core_1.integer)('userId').notNull().references(() => exports.users.id),
+    title: (0, pg_core_1.text)('title').notNull(),
+    description: (0, pg_core_1.text)('description'),
+    imageUrl: (0, pg_core_1.text)('imageUrl'),
+    latitude: (0, pg_core_1.decimal)('latitude', { precision: 10, scale: 6 }),
+    longitude: (0, pg_core_1.decimal)('longitude', { precision: 10, scale: 6 }),
+    locationName: (0, pg_core_1.text)('locationName'),
+    startTime: (0, pg_core_1.timestamp)('startTime').notNull(),
+    duration: (0, pg_core_1.integer)('duration'), // in minutes
+    nicotineStrength: (0, pg_core_1.decimal)('nicotineStrength').notNull(), // in mg
+    flavor: (0, pg_core_1.text)('flavor').notNull(),
+    mood: (0, pg_core_1.text)('mood').notNull(),
+    createdAt: (0, pg_core_1.timestamp)('createdAt').defaultNow().notNull()
 });
-
-// Create the comments table
-const comments = pgTable('comments', {
-  id: serial('id').primaryKey(),
-  postId: integer('postId').notNull().references(() => posts.id, { onDelete: 'cascade' }),
-  userId: integer('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  content: text('content').notNull(),
-  createdAt: timestamp('createdAt', { withTimezone: true }).defaultNow().notNull()
+exports.comments = (0, pg_core_1.pgTable)('comments', {
+    id: (0, pg_core_1.serial)('id').primaryKey(),
+    postId: (0, pg_core_1.integer)('postId').notNull().references(() => exports.posts.id),
+    userId: (0, pg_core_1.integer)('userId').notNull().references(() => exports.users.id),
+    content: (0, pg_core_1.text)('content').notNull(),
+    createdAt: (0, pg_core_1.timestamp)('createdAt').defaultNow().notNull()
 });
-
-// Create the reactions table
-const reactions = pgTable('reactions', {
-  id: serial('id').primaryKey(),
-  postId: integer('postId').notNull().references(() => posts.id, { onDelete: 'cascade' }),
-  userId: integer('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  type: varchar('type', { length: 20 }).notNull(), // 'like', 'love', etc.
-  createdAt: timestamp('createdAt', { withTimezone: true }).defaultNow().notNull()
-}, (table) => {
-  return {
-    postUserIdx: unique('post_user_idx').on(table.postId, table.userId)
-  };
+exports.reactions = (0, pg_core_1.pgTable)('reactions', {
+    id: (0, pg_core_1.serial)('id').primaryKey(),
+    postId: (0, pg_core_1.integer)('postId').notNull().references(() => exports.posts.id),
+    userId: (0, pg_core_1.integer)('userId').notNull().references(() => exports.users.id),
+    type: (0, pg_core_1.text)('type').notNull(), // 'like', 'love', 'laugh', etc.
+    createdAt: (0, pg_core_1.timestamp)('createdAt').defaultNow().notNull()
 });
-
-// Create the sessions table for connect-pg-simple
-const sessions = pgTable('session', {
-  sid: varchar('sid').primaryKey().notNull(),
-  sess: text('sess').notNull(),
-  expire: timestamp('expire', { precision: 6 }).notNull()
+exports.sessions = (0, pg_core_1.pgTable)('sessions', {
+    sid: (0, pg_core_1.varchar)('sid').primaryKey(),
+    sess: (0, pg_core_1.text)('sess').notNull(),
+    expire: (0, pg_core_1.timestamp)('expire').notNull()
 });
-
-module.exports = {
-  users,
-  friends,
-  posts,
-  comments,
-  reactions,
-  sessions
-};

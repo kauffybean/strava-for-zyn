@@ -54,7 +54,8 @@ function setupAuth(app) {
         try {
             const existingUser = await storage_1.storage.getUserByUsername(req.body.username);
             if (existingUser) {
-                return res.status(400).json({ error: "Username already exists" });
+                res.status(400).json({ error: "Username already exists" });
+                return;
             }
             const user = await storage_1.storage.createUser({
                 ...req.body,
@@ -62,8 +63,10 @@ function setupAuth(app) {
                 createdAt: new Date()
             });
             req.login(user, (err) => {
-                if (err)
-                    return next(err);
+                if (err) {
+                    next(err);
+                    return;
+                }
                 res.status(201).json(user);
             });
         }
@@ -71,19 +74,36 @@ function setupAuth(app) {
             next(error);
         }
     });
-    app.post("/api/login", passport_1.default.authenticate("local"), (req, res) => {
-        res.status(200).json(req.user);
+    app.post("/api/login", (req, res, next) => {
+        passport_1.default.authenticate("local", (err, user, info) => {
+            if (err) {
+                return next(err);
+            }
+            if (!user) {
+                return res.status(401).json({ error: "Invalid credentials" });
+            }
+            req.login(user, (loginErr) => {
+                if (loginErr) {
+                    return next(loginErr);
+                }
+                return res.status(200).json(user);
+            });
+        })(req, res, next);
     });
     app.post("/api/logout", (req, res, next) => {
         req.logout((err) => {
-            if (err)
-                return next(err);
+            if (err) {
+                next(err);
+                return;
+            }
             res.sendStatus(200);
         });
     });
     app.get("/api/user", (req, res) => {
-        if (!req.isAuthenticated())
-            return res.sendStatus(401);
+        if (!req.isAuthenticated()) {
+            res.sendStatus(401);
+            return;
+        }
         res.json(req.user);
     });
 }

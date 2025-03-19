@@ -249,10 +249,10 @@ class MemStorage {
         });
         const favoriteFlavorEntries = Object.entries(flavorCounts);
         const favoriteFlavorEntry = favoriteFlavorEntries.length > 0
-            ? favoriteFlavorEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max)
+            ? favoriteFlavorEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max, ['', 0])
             : ['None', 0];
         const favoriteFlavorPercentage = totalPosts > 0
-            ? Math.round((favoriteFlavorEntry[1] / totalPosts) * 100)
+            ? Math.round((Number(favoriteFlavorEntry[1]) / totalPosts) * 100)
             : 0;
         // Calculate favorite mood
         const moodCounts = {};
@@ -261,10 +261,10 @@ class MemStorage {
         });
         const favoriteMoodEntries = Object.entries(moodCounts);
         const favoriteMoodEntry = favoriteMoodEntries.length > 0
-            ? favoriteMoodEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max)
+            ? favoriteMoodEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max, ['', 0])
             : ['None', 0];
         const favoriteMoodPercentage = totalPosts > 0
-            ? Math.round((favoriteMoodEntry[1] / totalPosts) * 100)
+            ? Math.round((Number(favoriteMoodEntry[1]) / totalPosts) * 100)
             : 0;
         // Get total reactions received
         let totalReactions = 0;
@@ -275,13 +275,13 @@ class MemStorage {
         // Calculate most active time of day
         const hourCounts = {};
         userPosts.forEach(post => {
-            const hour = post.startTime.getHours();
+            const hour = post.startTime.getHours().toString();
             hourCounts[hour] = (hourCounts[hour] || 0) + 1;
         });
         const mostActiveHourEntries = Object.entries(hourCounts);
         const mostActiveHourEntry = mostActiveHourEntries.length > 0
-            ? mostActiveHourEntries.reduce((max, entry) => parseInt(entry[0]) > max[0] ? entry : max, [0, 0])
-            : [0, 0];
+            ? mostActiveHourEntries.reduce((max, entry) => Number(entry[0]) > Number(max[0]) ? entry : max, ['0', 0])
+            : ['0', 0];
         return {
             totalPosts,
             totalNicotine,
@@ -426,7 +426,15 @@ class DatabaseStorage {
             .from(schema.posts)
             .where((0, drizzle_orm_1.eq)(schema.posts.id, id))
             .limit(1);
-        return result.length > 0 ? result[0] : undefined;
+        if (result.length === 0) {
+            return undefined;
+        }
+        // Ensure nicotineStrength is returned as a number
+        const post = {
+            ...result[0],
+            nicotineStrength: Number(result[0].nicotineStrength)
+        };
+        return post;
     }
     async getFeedPosts(userId) {
         // Get all friend IDs
@@ -459,6 +467,8 @@ class DatabaseStorage {
             const postUser = users.find(u => u.id === post.userId);
             return {
                 ...post,
+                // Ensure nicotineStrength is a number
+                nicotineStrength: Number(post.nicotineStrength),
                 user: postUser || {
                     id: post.userId,
                     username: 'unknown',
@@ -497,28 +507,37 @@ class DatabaseStorage {
         // Map user to posts
         return posts.map(post => ({
             ...post,
+            // Ensure nicotineStrength is a number
+            nicotineStrength: Number(post.nicotineStrength),
             user: userData
         }));
     }
     async createPost(post) {
-        const result = await db_1.db
-            .insert(schema.posts)
-            .values({
+        // Convert types to match the database schema
+        const newPost = {
             userId: post.userId,
             title: post.title,
             description: post.description,
             imageUrl: post.imageUrl,
-            latitude: post.latitude,
-            longitude: post.longitude,
+            latitude: post.latitude ? post.latitude.toString() : null,
+            longitude: post.longitude ? post.longitude.toString() : null,
             locationName: post.locationName,
             startTime: post.startTime || new Date(),
             duration: post.duration,
-            nicotineStrength: post.nicotineStrength,
+            nicotineStrength: post.nicotineStrength ? post.nicotineStrength.toString() : "0",
             flavor: post.flavor,
             mood: post.mood
-        })
+        };
+        const result = await db_1.db
+            .insert(schema.posts)
+            .values(newPost)
             .returning();
-        return result[0];
+        // Ensure the nicotineStrength is returned as a number
+        const returnPost = {
+            ...result[0],
+            nicotineStrength: Number(result[0].nicotineStrength)
+        };
+        return returnPost;
     }
     // Comment methods
     async getComments(postId) {
@@ -552,13 +571,15 @@ class DatabaseStorage {
         }));
     }
     async createComment(comment) {
-        const result = await db_1.db
-            .insert(schema.comments)
-            .values({
+        // Use the schema definition correctly with the Drizzle inferred type
+        const newComment = {
             postId: comment.postId,
             userId: comment.userId,
             content: comment.content
-        })
+        };
+        const result = await db_1.db
+            .insert(schema.comments)
+            .values(newComment)
             .returning();
         return result[0];
     }
@@ -616,13 +637,14 @@ class DatabaseStorage {
             return result[0];
         }
         // Otherwise, create a new reaction
-        const result = await db_1.db
-            .insert(schema.reactions)
-            .values({
+        const newReaction = {
             postId: reaction.postId,
             userId: reaction.userId,
             type: reaction.type
-        })
+        };
+        const result = await db_1.db
+            .insert(schema.reactions)
+            .values(newReaction)
             .returning();
         return result[0];
     }
@@ -640,10 +662,10 @@ class DatabaseStorage {
         });
         const favoriteFlavorEntries = Object.entries(flavorCounts);
         const favoriteFlavorEntry = favoriteFlavorEntries.length > 0
-            ? favoriteFlavorEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max)
+            ? favoriteFlavorEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max, ['', 0])
             : ['None', 0];
         const favoriteFlavorPercentage = totalPosts > 0
-            ? Math.round((favoriteFlavorEntry[1] / totalPosts) * 100)
+            ? Math.round((Number(favoriteFlavorEntry[1]) / totalPosts) * 100)
             : 0;
         // Calculate favorite mood
         const moodCounts = {};
@@ -652,10 +674,10 @@ class DatabaseStorage {
         });
         const favoriteMoodEntries = Object.entries(moodCounts);
         const favoriteMoodEntry = favoriteMoodEntries.length > 0
-            ? favoriteMoodEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max)
+            ? favoriteMoodEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max, ['', 0])
             : ['None', 0];
         const favoriteMoodPercentage = totalPosts > 0
-            ? Math.round((favoriteMoodEntry[1] / totalPosts) * 100)
+            ? Math.round((Number(favoriteMoodEntry[1]) / totalPosts) * 100)
             : 0;
         // Get total reactions
         let totalReactions = 0;
@@ -666,13 +688,13 @@ class DatabaseStorage {
         // Most active hour
         const hourCounts = {};
         userPosts.forEach(post => {
-            const hour = new Date(post.startTime).getHours();
+            const hour = new Date(post.startTime).getHours().toString();
             hourCounts[hour] = (hourCounts[hour] || 0) + 1;
         });
         const mostActiveHourEntries = Object.entries(hourCounts);
         const mostActiveHourEntry = mostActiveHourEntries.length > 0
-            ? mostActiveHourEntries.reduce((max, entry) => parseInt(entry[0]) > max[0] ? entry : max, [0, 0])
-            : [0, 0];
+            ? mostActiveHourEntries.reduce((max, entry) => Number(entry[0]) > Number(max[0]) ? entry : max, ['0', 0])
+            : ['0', 0];
         return {
             totalPosts,
             totalNicotine,
@@ -683,7 +705,7 @@ class DatabaseStorage {
             favoriteMoodCount: favoriteMoodEntry[1],
             favoriteMoodPercentage,
             totalReactions,
-            mostActiveHour: parseInt(mostActiveHourEntry[0].toString()),
+            mostActiveHour: parseInt(mostActiveHourEntry[0]),
             mostActiveHourCount: mostActiveHourEntry[1],
         };
     }

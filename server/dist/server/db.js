@@ -39,7 +39,6 @@ exports.createTables = createTables;
 const pg_1 = require("pg");
 const node_postgres_1 = require("drizzle-orm/node-postgres");
 const schema = __importStar(require("../shared/db"));
-const drizzle_orm_1 = require("drizzle-orm");
 // Create a PostgreSQL connection pool
 exports.pool = new pg_1.Pool({
     connectionString: process.env.DATABASE_URL,
@@ -68,7 +67,7 @@ async function initDatabase() {
 async function createTables() {
     try {
         // Create users table if it doesn't exist
-        await (0, drizzle_orm_1.sql) `
+        await exports.pool.query(`
       CREATE TABLE IF NOT EXISTS "users" (
         "id" SERIAL PRIMARY KEY,
         "username" VARCHAR(100) NOT NULL UNIQUE,
@@ -78,9 +77,9 @@ async function createTables() {
         "avatar" TEXT,
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
-    `.execute(exports.pool);
+    `);
         // Create friends table if it doesn't exist
-        await (0, drizzle_orm_1.sql) `
+        await exports.pool.query(`
       CREATE TABLE IF NOT EXISTS "friends" (
         "id" SERIAL PRIMARY KEY,
         "userId" INTEGER NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
@@ -89,9 +88,9 @@ async function createTables() {
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         UNIQUE ("userId", "friendId")
       );
-    `.execute(exports.pool);
+    `);
         // Create posts table if it doesn't exist
-        await (0, drizzle_orm_1.sql) `
+        await exports.pool.query(`
       CREATE TABLE IF NOT EXISTS "posts" (
         "id" SERIAL PRIMARY KEY,
         "userId" INTEGER NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
@@ -108,9 +107,9 @@ async function createTables() {
         "mood" VARCHAR(100) NOT NULL,
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
-    `.execute(exports.pool);
+    `);
         // Create comments table if it doesn't exist
-        await (0, drizzle_orm_1.sql) `
+        await exports.pool.query(`
       CREATE TABLE IF NOT EXISTS "comments" (
         "id" SERIAL PRIMARY KEY,
         "postId" INTEGER NOT NULL REFERENCES "posts"("id") ON DELETE CASCADE,
@@ -118,9 +117,9 @@ async function createTables() {
         "content" TEXT NOT NULL,
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
-    `.execute(exports.pool);
+    `);
         // Create reactions table if it doesn't exist
-        await (0, drizzle_orm_1.sql) `
+        await exports.pool.query(`
       CREATE TABLE IF NOT EXISTS "reactions" (
         "id" SERIAL PRIMARY KEY,
         "postId" INTEGER NOT NULL REFERENCES "posts"("id") ON DELETE CASCADE,
@@ -129,15 +128,15 @@ async function createTables() {
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         UNIQUE ("postId", "userId")
       );
-    `.execute(exports.pool);
+    `);
         // Create sessions table if it doesn't exist (for connect-pg-simple)
-        await (0, drizzle_orm_1.sql) `
-      CREATE TABLE IF NOT EXISTS "session" (
+        await exports.pool.query(`
+      CREATE TABLE IF NOT EXISTS "sessions" (
         "sid" VARCHAR NOT NULL PRIMARY KEY,
         "sess" JSON NOT NULL,
         "expire" TIMESTAMP(6) NOT NULL
       );
-    `.execute(exports.pool);
+    `);
         console.log('Database tables created or verified');
         return true;
     }
