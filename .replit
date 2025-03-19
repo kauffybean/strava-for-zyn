@@ -4,7 +4,7 @@ modules = ["nodejs-20"]
 channel = "stable-24_05"
 
 [workflows]
-runButton = "Project"
+runButton = "Build and Start"
 
 [[workflows.workflow]]
 name = "Project"
@@ -30,6 +30,31 @@ task = "shell.exec"
 args = "node start-prod.js"
 waitForPort = 5000
 
+[[workflows.workflow]]
+name = "Build and Start"
+author = 40597245
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run build"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd .."
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && npx tsc"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd .."
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node start-prod.js"
+
 [deployment]
 run = ["sh", "-c", "cd server && NODE_ENV=production PORT=3000 node dist/index.js"]
 build = ["sh", "-c", "npm install && cd server && mkdir -p dist && npx tsc"]
@@ -37,3 +62,7 @@ build = ["sh", "-c", "npm install && cd server && mkdir -p dist && npx tsc"]
 [[ports]]
 localPort = 3000
 externalPort = 80
+
+[[ports]]
+localPort = 5000
+externalPort = 5000
