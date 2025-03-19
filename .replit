@@ -13,10 +13,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "MinimalApp"
+args = "Server"
 
 [[workflows.workflow]]
-name = "MinimalApp"
+name = "Server"
 author = "agent"
 
 [workflows.workflow.metadata]

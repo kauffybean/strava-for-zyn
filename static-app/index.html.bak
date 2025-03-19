@@ -515,7 +515,7 @@
                     
                     // Store user data and redirect to dashboard
                     localStorage.setItem('user', JSON.stringify(userData));
-                    window.location.href = "/feed.html";
+                    showDashboard(userData);
                     
                 } catch (error) {
                     console.error('Login error:', error);
@@ -551,7 +551,7 @@
                     
                     // Store user data and redirect to dashboard
                     localStorage.setItem('user', JSON.stringify(userData));
-                    window.location.href = "/feed.html";
+                    showDashboard(userData);
                     
                 } catch (error) {
                     console.error('Registration error:', error);
@@ -578,7 +578,7 @@
                     
                     if (response.ok) {
                         const currentUser = await response.json();
-                        window.location.href = "/feed.html";
+                        showDashboard(currentUser);
                     } else {
                         // Session expired or invalid, clear storage
                         localStorage.removeItem('user');

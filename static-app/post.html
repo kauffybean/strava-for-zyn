@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Post - Zynfantry</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪖</text></svg>">
+    <style>
+        :root {
+            --military-green: #4b5320;
+            --military-tan: #c2b280;
+            --military-dark: #1a1a1a;
+            --military-light: #f5f5f5;
+            --military-accent: #8a9a5b;
+            --camo-brown: #8c7e58;
+            --error-red: #ff4136;
+        }
+        
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background-color: var(--military-dark);
+            color: var(--military-light);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-image: 
+                linear-gradient(30deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1)),
+                linear-gradient(150deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1)),
+                linear-gradient(30deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1)),
+                linear-gradient(150deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1));
+            background-size: 80px 140px;
+            background-position: 0 0, 0 0, 40px 70px, 40px 70px;
+        }
+        
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+        
+        /* Header styles */
+        .header {
+            background-color: var(--military-dark);
+            border-bottom: 2px solid var(--military-accent);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-small {
+            width: 40px;
+            height: 40px;
+            background-color: var(--military-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--military-light);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin-right: 1rem;
+        }
+        
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .nav-link {
+            color: var(--military-light);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-link:hover {
+            color: var(--military-tan);
+        }
+        
+        /* Form styles */
+        .form-container {
+            max-width: 800px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            color: var(--military-dark);
+            padding: 2rem;
+            position: relative;
+        }
+        
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px dashed var(--camo-brown);
+            border-radius: 4px;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        
+        .form-title {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            color: var(--military-dark);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+        
+        .form-subtitle {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            color: #666;
+            text-align: center;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--military-dark);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--military-accent);
+            box-shadow: 0 0 0 2px rgba(138, 154, 91, 0.2);
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            background-color: var(--military-green);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #3a421a;
+        }
+        
+        .btn-accent {
+            background-color: var(--military-accent);
+        }
+        
+        .btn-accent:hover {
+            background-color: #7d8b52;
+        }
+        
+        .footer {
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--military-tan);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Mobile optimization - iOS focused */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .form-container {
+                padding: 1.5rem;
+            }
+            
+            .header {
+                padding: 0.75rem 1rem;
+                flex-direction: column;
+            }
+            
+            .header-nav {
+                margin-top: 0.5rem;
+            }
+        }
+        
+        /* Image upload preview */
+        .image-preview-container {
+            width: 100%;
+            background-color: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+            padding: 1rem;
+            text-align: center;
+            margin-top: 0.5rem;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            display: none;
+        }
+        
+        .image-preview-placeholder {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .image-preview-container.has-image .image-preview {
+            display: block;
+        }
+        
+        .image-preview-container.has-image .image-preview-placeholder {
+            display: none;
+        }
+        
+        /* Custom selects */
+        .custom-select {
+            position: relative;
+            width: 100%;
+        }
+        
+        .custom-select select {
+            appearance: none;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .custom-select select:focus {
+            outline: none;
+            border-color: var(--military-accent);
+            box-shadow: 0 0 0 2px rgba(138, 154, 91, 0.2);
+        }
+        
+        .custom-select::after {
+            content: '▼';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+            font-size: 12px;
+            pointer-events: none;
+        }
+        
+        /* Error message */
+        .error-message {
+            color: var(--error-red);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo-small">🪖</div>
+                <div class="header-title">ZYNFANTRY</div>
+            </div>
+            <nav class="header-nav">
+                <a href="/" class="nav-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    Home
+                </a>
+                <a href="/post.html" class="nav-link" style="color: var(--military-tan);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                    New Deployment
+                </a>
+                <a href="javascript:void(0);" class="nav-link" id="logout-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </a>
+            </nav>
+        </header>
+        
+        <!-- Main content -->
+        <main class="main-content">
+            <div class="form-container">
+                <h1 class="form-title">New Zyn Deployment</h1>
+                <p class="form-subtitle">Log your tactical pouch mission details</p>
+                
+                <form id="post-form">
+                    <div class="form-group full-width">
+                        <label for="post-title">MISSION TITLE</label>
+                        <input type="text" id="post-title" class="form-control" placeholder="Name your deployment" required>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="post-description">MISSION DETAILS</label>
+                        <textarea id="post-description" class="form-control" placeholder="Describe your deployment experience"></textarea>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="post-flavor">FLAVOR PROFILE</label>
+                            <div class="custom-select">
+                                <select id="post-flavor" class="form-control" required>
+                                    <option value="" disabled selected>Select flavor</option>
+                                    <option value="Mint">Mint</option>
+                                    <option value="Wintergreen">Wintergreen</option>
+                                    <option value="Citrus">Citrus</option>
+                                    <option value="Cinnamon">Cinnamon</option>
+                                    <option value="Coffee">Coffee</option>
+                                    <option value="Spearmint">Spearmint</option>
+                                    <option value="Peppermint">Peppermint</option>
+                                    <option value="Cool Mint">Cool Mint</option>
+                                    <option value="Smooth">Smooth</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="post-nicotine">NICOTINE STRENGTH</label>
+                            <div class="custom-select">
+                                <select id="post-nicotine" class="form-control" required>
+                                    <option value="" disabled selected>Select strength</option>
+                                    <option value="1.5">1.5 mg</option>
+                                    <option value="3">3 mg</option>
+                                    <option value="6">6 mg</option>
+                                    <option value="8">8 mg</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="post-mood">MISSION MOOD</label>
+                            <div class="custom-select">
+                                <select id="post-mood" class="form-control" required>
+                                    <option value="" disabled selected>Select mood</option>
+                                    <option value="Focused">Focused</option>
+                                    <option value="Relaxed">Relaxed</option>
+                                    <option value="Energized">Energized</option>
+                                    <option value="Stressed">Stressed</option>
+                                    <option value="Excited">Excited</option>
+                                    <option value="Nervous">Nervous</option>
+                                    <option value="Content">Content</option>
+                                    <option value="Tired">Tired</option>
+                                    <option value="Alert">Alert</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="post-duration">DEPLOYMENT DURATION (MINUTES)</label>
+                            <input type="number" id="post-duration" class="form-control" min="1" max="180" placeholder="Duration in minutes" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="post-time">DEPLOYMENT TIME</label>
+                            <input type="datetime-local" id="post-time" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="post-location">LOCATION NAME (OPTIONAL)</label>
+                            <input type="text" id="post-location" class="form-control" placeholder="Deployment location">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="post-image">MISSION PHOTO (OPTIONAL)</label>
+                        <input type="file" id="post-image" class="form-control" accept="image/*">
+                        <div class="image-preview-container">
+                            <img src="" alt="Preview" class="image-preview">
+                            <div class="image-preview-placeholder">No image selected</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <button type="submit" class="btn btn-accent">DEPLOY MISSION REPORT</button>
+                    </div>
+                    
+                    <div id="post-error" class="error-message"></div>
+                </form>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 Zynfantry | Front-line Pouchers</p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Auth check
+            const checkAuth = async () => {
+                try {
+                    const response = await fetch('/api/user');
+                    if (!response.ok) {
+                        // Not authenticated, redirect to login
+                        window.location.href = '/';
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                    // If there's an error, redirect to login
+                    window.location.href = '/';
+                }
+            };
+            
+            // Check authentication on page load
+            checkAuth();
+            
+            // Set default time to now
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            
+            document.getElementById('post-time').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            
+            // Image preview
+            const imageInput = document.getElementById('post-image');
+            const imagePreview = document.querySelector('.image-preview');
+            const previewContainer = document.querySelector('.image-preview-container');
+            
+            imageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        imagePreview.src = event.target.result;
+                        previewContainer.classList.add('has-image');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.src = '';
+                    previewContainer.classList.remove('has-image');
+                }
+            });
+            
+            // Logout handler
+            document.getElementById('logout-link').addEventListener('click', async () => {
+                try {
+                    await fetch('/api/logout', { method: 'POST' });
+                    localStorage.removeItem('user');
+                    window.location.href = '/';
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            });
+            
+            // Form submission
+            const postForm = document.getElementById('post-form');
+            const errorMessage = document.getElementById('post-error');
+            
+            postForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Gather form data
+                const formData = {
+                    title: document.getElementById('post-title').value,
+                    description: document.getElementById('post-description').value,
+                    flavor: document.getElementById('post-flavor').value,
+                    nicotineStrength: parseFloat(document.getElementById('post-nicotine').value),
+                    mood: document.getElementById('post-mood').value,
+                    duration: parseInt(document.getElementById('post-duration').value),
+                    startTime: new Date(document.getElementById('post-time').value).toISOString(),
+                    locationName: document.getElementById('post-location').value || undefined,
+                };
+                
+                // Add image if available
+                const imageFile = document.getElementById('post-image').files[0];
+                if (imageFile) {
+                    // For now, we'll just use a placeholder URL
+                    // In a real app, you'd upload the image to a server or storage service
+                    formData.imageUrl = "https://picsum.photos/seed/" + formData.title.replace(/\s/g, '') + "/500/300";
+                }
+                
+                // Optional: Add geolocation if available
+                if (navigator.geolocation) {
+                    try {
+                        const position = await new Promise((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                                enableHighAccuracy: true,
+                                timeout: 5000,
+                                maximumAge: 0
+                            });
+                        });
+                        
+                        formData.latitude = position.coords.latitude;
+                        formData.longitude = position.coords.longitude;
+                    } catch (error) {
+                        console.warn('Geolocation not available:', error);
+                    }
+                }
+                
+                try {
+                    // Submit post to API
+                    const response = await fetch('/api/posts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to create post');
+                    }
+                    
+                    const postData = await response.json();
+                    console.log('Post created:', postData);
+                    
+                    // Redirect to home page
+                    window.location.href = '/';
+                    
+                } catch (error) {
+                    console.error('Post creation error:', error);
+                    errorMessage.textContent = 'Failed to create post. Please try again.';
+                    errorMessage.classList.add('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

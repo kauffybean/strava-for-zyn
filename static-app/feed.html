@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Feed - Zynfantry</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪖</text></svg>">
+    <style>
+        :root {
+            --military-green: #4b5320;
+            --military-tan: #c2b280;
+            --military-dark: #1a1a1a;
+            --military-light: #f5f5f5;
+            --military-accent: #8a9a5b;
+            --camo-brown: #8c7e58;
+            --error-red: #ff4136;
+        }
+        
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background-color: var(--military-dark);
+            color: var(--military-light);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-image: 
+                linear-gradient(30deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1)),
+                linear-gradient(150deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1)),
+                linear-gradient(30deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1)),
+                linear-gradient(150deg, rgba(0,0,0,0.1) 12%, transparent 12.5%, transparent 87%, rgba(0,0,0,0.1) 87.5%, rgba(0,0,0,0.1));
+            background-size: 80px 140px;
+            background-position: 0 0, 0 0, 40px 70px, 40px 70px;
+        }
+        
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Header styles */
+        .header {
+            background-color: var(--military-dark);
+            border-bottom: 2px solid var(--military-accent);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-small {
+            width: 40px;
+            height: 40px;
+            background-color: var(--military-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--military-light);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin-right: 1rem;
+        }
+        
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .header-nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .nav-link {
+            color: var(--military-light);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-link:hover {
+            color: var(--military-tan);
+        }
+        
+        /* Main content */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--military-light);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .page-title svg {
+            flex-shrink: 0;
+        }
+        
+        /* Feed layout */
+        .feed-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .feed-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Post card styles */
+        .post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .post-card {
+            background-color: rgba(42, 42, 42, 0.8);
+            border: 2px solid var(--military-accent);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .post-card::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px dashed var(--camo-brown);
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .post-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+        }
+        
+        .post-content {
+            padding: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .post-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--military-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--military-light);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--military-light);
+        }
+        
+        .user-rank {
+            font-size: 0.85rem;
+            color: var(--military-tan);
+        }
+        
+        .post-date {
+            font-size: 0.85rem;
+            color: var(--military-tan);
+        }
+        
+        .post-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--military-light);
+        }
+        
+        .post-description {
+            margin-bottom: 1.5rem;
+            color: var(--military-light);
+            line-height: 1.6;
+        }
+        
+        .post-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .post-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--military-tan);
+        }
+        
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .action-button {
+            background: none;
+            border: none;
+            color: var(--military-tan);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .action-button:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: var(--military-green);
+            color: var(--military-light);
+            border-radius: 4px;
+            font-weight: 500;
+            margin-right: 0.5rem;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+        }
+        
+        /* Sidebar styles */
+        .sidebar {
+            position: sticky;
+            top: 2rem;
+        }
+        
+        .sidebar-card {
+            background-color: rgba(42, 42, 42, 0.8);
+            border: 2px solid var(--military-accent);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .sidebar-card::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px dashed var(--camo-brown);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+        
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--military-light);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        .user-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--military-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--military-light);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            margin-bottom: 1rem;
+        }
+        
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .profile-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--military-light);
+        }
+        
+        .profile-username {
+            font-size: 0.9rem;
+            color: var(--military-tan);
+            margin-bottom: 1rem;
+        }
+        
+        .profile-bio {
+            margin-bottom: 1.5rem;
+            color: var(--military-light);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 0.75rem;
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--military-light);
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--military-tan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            background-color: var(--military-green);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background-color 0.2s;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 1rem;
+        }
+        
+        .btn:hover {
+            background-color: #3a421a;
+        }
+        
+        .btn-accent {
+            background-color: var(--military-accent);
+        }
+        
+        .btn-accent:hover {
+            background-color: #7d8b52;
+        }
+        
+        .trend-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .trend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .trend-item:last-child {
+            border-bottom: none;
+        }
+        
+        .trend-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background-color: var(--military-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--military-light);
+        }
+        
+        .trend-content {
+            flex: 1;
+        }
+        
+        .trend-name {
+            font-weight: 600;
+            color: var(--military-light);
+            margin-bottom: 0.25rem;
+        }
+        
+        .trend-count {
+            font-size: 0.8rem;
+            color: var(--military-tan);
+        }
+        
+        .footer {
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--military-tan);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            text-align: center;
+            background-color: rgba(42, 42, 42, 0.6);
+            border: 2px dashed var(--military-accent);
+            border-radius: 8px;
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--military-tan);
+        }
+        
+        .empty-state-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--military-light);
+        }
+        
+        .empty-state-description {
+            color: var(--military-tan);
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Loading states */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--military-accent);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Mobile optimization - iOS focused */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .header {
+                padding: 0.75rem 1rem;
+                flex-direction: column;
+            }
+            
+            .header-nav {
+                margin-top: 0.5rem;
+                width: 100%;
+                justify-content: space-around;
+            }
+            
+            .post-content {
+                padding: 1rem;
+            }
+            
+            .post-header {
+                flex-direction: column;
+            }
+            
+            .post-date {
+                margin-top: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo-small">🪖</div>
+                <div class="header-title">ZYNFANTRY</div>
+            </div>
+            <nav class="header-nav">
+                <a href="/feed.html" class="nav-link" style="color: var(--military-tan);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    Feed
+                </a>
+                <a href="/post.html" class="nav-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                    New Deployment
+                </a>
+                <a href="javascript:void(0);" class="nav-link" id="logout-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </a>
+            </nav>
+        </header>
+        
+        <!-- Main content -->
+        <main class="main-content">
+            <h1 class="page-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                MISSION INTEL FEED
+            </h1>
+            
+            <div class="feed-container">
+                <!-- Feed content -->
+                <div class="feed-content">
+                    <!-- Loading state (will be hidden once posts load) -->
+                    <div id="loading-indicator" class="loading">
+                        <div class="loading-spinner"></div>
+                    </div>
+                    
+                    <!-- Empty state (shown when no posts) -->
+                    <div id="empty-state" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📭</div>
+                        <h3 class="empty-state-title">No Deployments Found</h3>
+                        <p class="empty-state-description">Your intel feed is empty. Deploy a new Zyn mission or connect with fellow troops.</p>
+                        <a href="/post.html" class="btn btn-accent">CREATE FIRST DEPLOYMENT</a>
+                    </div>
+                    
+                    <!-- Posts will be loaded here -->
+                    <div id="post-list" class="post-list">
+                        <!-- Posts will be inserted here dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Sidebar -->
+                <aside class="sidebar">
+                    <!-- User profile -->
+                    <div class="sidebar-card">
+                        <h3 class="sidebar-title">YOUR PROFILE</h3>
+                        <div id="user-profile" class="user-profile">
+                            <!-- Profile content will be inserted here dynamically -->
+                        </div>
+                        <a href="/post.html" class="btn btn-accent">NEW DEPLOYMENT</a>
+                    </div>
+                    
+                    <!-- Trending flavors -->
+                    <div class="sidebar-card">
+                        <h3 class="sidebar-title">TRENDING FLAVORS</h3>
+                        <ul class="trend-list">
+                            <li class="trend-item">
+                                <div class="trend-icon">🌿</div>
+                                <div class="trend-content">
+                                    <div class="trend-name">Mint</div>
+                                    <div class="trend-count">42 deployments this week</div>
+                                </div>
+                            </li>
+                            <li class="trend-item">
+                                <div class="trend-icon">❄️</div>
+                                <div class="trend-content">
+                                    <div class="trend-name">Wintergreen</div>
+                                    <div class="trend-count">36 deployments this week</div>
+                                </div>
+                            </li>
+                            <li class="trend-item">
+                                <div class="trend-icon">🍊</div>
+                                <div class="trend-content">
+                                    <div class="trend-name">Citrus</div>
+                                    <div class="trend-count">29 deployments this week</div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Top moods -->
+                    <div class="sidebar-card">
+                        <h3 class="sidebar-title">TOP MOODS</h3>
+                        <ul class="trend-list">
+                            <li class="trend-item">
+                                <div class="trend-icon">💪</div>
+                                <div class="trend-content">
+                                    <div class="trend-name">Focused</div>
+                                    <div class="trend-count">65 deployments this week</div>
+                                </div>
+                            </li>
+                            <li class="trend-item">
+                                <div class="trend-icon">😌</div>
+                                <div class="trend-content">
+                                    <div class="trend-name">Relaxed</div>
+                                    <div class="trend-count">51 deployments this week</div>
+                                </div>
+                            </li>
+                            <li class="trend-item">
+                                <div class="trend-icon">⚡</div>
+                                <div class="trend-content">
+                                    <div class="trend-name">Energized</div>
+                                    <div class="trend-count">37 deployments this week</div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </aside>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 Zynfantry | Front-line Pouchers</p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Auth check
+            const checkAuth = async () => {
+                try {
+                    const response = await fetch('/api/user');
+                    if (!response.ok) {
+                        // Not authenticated, redirect to login
+                        window.location.href = '/';
+                    } else {
+                        const userData = await response.json();
+                        // Load user profile
+                        loadUserProfile(userData);
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                    // If there's an error, redirect to login
+                    window.location.href = '/';
+                }
+            };
+            
+            // Check authentication on page load
+            checkAuth();
+            
+            // Load user profile
+            const loadUserProfile = (user) => {
+                const profileContainer = document.getElementById('user-profile');
+                
+                // Set avatar or fallback
+                const avatar = user.avatar || getInitialsAvatar(user.displayName);
+                
+                profileContainer.innerHTML = `
+                    <div class="profile-avatar">
+                        ${avatar.includes('http') ? `<img src="${avatar}" alt="${user.displayName}" />` : avatar}
+                    </div>
+                    <div class="profile-name">${user.displayName}</div>
+                    <div class="profile-username">@${user.username}</div>
+                    ${user.bio ? `<p class="profile-bio">${user.bio}</p>` : ''}
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="post-count">--</div>
+                            <div class="stat-label">Deployments</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="friend-count">--</div>
+                            <div class="stat-label">Squad</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Load user stats
+                loadUserStats(user.id);
+                
+                // Finally, load posts
+                loadPosts();
+            };
+            
+            // Load user statistics
+            const loadUserStats = async (userId) => {
+                try {
+                    // Get user's posts
+                    const postsResponse = await fetch(`/api/users/${userId}/posts`);
+                    if (postsResponse.ok) {
+                        const posts = await postsResponse.json();
+                        document.getElementById('post-count').textContent = posts.length;
+                    }
+                    
+                    // Get user's friends
+                    const friendsResponse = await fetch('/api/friends');
+                    if (friendsResponse.ok) {
+                        const friends = await friendsResponse.json();
+                        document.getElementById('friend-count').textContent = friends.length;
+                    }
+                } catch (error) {
+                    console.error('Failed to load user stats:', error);
+                }
+            };
+            
+            // Load posts
+            const loadPosts = async () => {
+                try {
+                    const response = await fetch('/api/posts');
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch posts');
+                    }
+                    
+                    const posts = await response.json();
+                    
+                    // Hide loading indicator
+                    document.getElementById('loading-indicator').style.display = 'none';
+                    
+                    // Show empty state if no posts
+                    if (posts.length === 0) {
+                        document.getElementById('empty-state').style.display = 'flex';
+                        return;
+                    }
+                    
+                    // Render posts
+                    const postListElement = document.getElementById('post-list');
+                    postListElement.innerHTML = '';
+                    
+                    posts.forEach(post => {
+                        postListElement.appendChild(createPostElement(post));
+                    });
+                    
+                } catch (error) {
+                    console.error('Failed to load posts:', error);
+                    document.getElementById('loading-indicator').style.display = 'none';
+                    document.getElementById('empty-state').style.display = 'flex';
+                    document.querySelector('.empty-state-description').textContent = 'Error loading deployments. Please try again later.';
+                }
+            };
+            
+            // Create a post element
+            const createPostElement = (post) => {
+                const postElement = document.createElement('article');
+                postElement.className = 'post-card';
+                
+                // Format time and date
+                const postDate = new Date(post.createdAt);
+                const dateTimeFormatted = formatDateTime(postDate);
+                
+                // Create avatar
+                const userAvatar = post.user.avatar 
+                    ? `<img src="${post.user.avatar}" alt="${post.user.displayName}" />`
+                    : getInitialsAvatar(post.user.displayName);
+                
+                // Format deployment time
+                const deploymentTime = new Date(post.startTime);
+                const deploymentTimeFormatted = formatDateTime(deploymentTime);
+                
+                postElement.innerHTML = `
+                    ${post.imageUrl ? `<img src="${post.imageUrl}" alt="${post.title}" class="post-image">` : ''}
+                    <div class="post-content">
+                        <div class="post-header">
+                            <div class="post-user">
+                                <div class="user-avatar">${userAvatar}</div>
+                                <div class="user-info">
+                                    <div class="user-name">${post.user.displayName}</div>
+                                    <div class="user-rank">@${post.user.username}</div>
+                                </div>
+                            </div>
+                            <div class="post-date">${dateTimeFormatted}</div>
+                        </div>
+                        
+                        <h2 class="post-title">${post.title}</h2>
+                        
+                        <div class="post-meta">
+                            <div class="post-meta-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                Deployed: ${deploymentTimeFormatted}
+                            </div>
+                            
+                            <div class="post-meta-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                    <path d="M2 12h20"></path>
+                                </svg>
+                                Duration: ${post.duration} mins
+                            </div>
+                            
+                            ${post.locationName ? `
+                                <div class="post-meta-item">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    Location: ${post.locationName}
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div>
+                            <span class="badge">${post.flavor}</span>
+                            <span class="badge">${post.nicotineStrength} mg</span>
+                            <span class="badge">${post.mood}</span>
+                        </div>
+                        
+                        ${post.description ? `<p class="post-description">${post.description}</p>` : ''}
+                        
+                        <div class="post-actions">
+                            <button class="action-button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
+                                Like
+                            </button>
+                            <button class="action-button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                </svg>
+                                Comment
+                            </button>
+                            <button class="action-button">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="18" cy="5" r="3"></circle>
+                                    <circle cx="6" cy="12" r="3"></circle>
+                                    <circle cx="18" cy="19" r="3"></circle>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                </svg>
+                                Share
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                return postElement;
+            };
+            
+            // Helper function to get avatar with initials
+            const getInitialsAvatar = (name) => {
+                if (!name) return '👤';
+                const initials = name.split(' ')
+                    .map(part => part.charAt(0))
+                    .join('')
+                    .toUpperCase()
+                    .substring(0, 2);
+                return initials;
+            };
+            
+            // Helper function to format date and time
+            const formatDateTime = (date) => {
+                const now = new Date();
+                const diffMs = now - date;
+                const diffSecs = Math.floor(diffMs / 1000);
+                const diffMins = Math.floor(diffSecs / 60);
+                const diffHours = Math.floor(diffMins / 60);
+                const diffDays = Math.floor(diffHours / 24);
+                
+                if (diffSecs < 60) {
+                    return 'just now';
+                } else if (diffMins < 60) {
+                    return `${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'} ago`;
+                } else if (diffHours < 24) {
+                    return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+                } else if (diffDays < 7) {
+                    return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+                } else {
+                    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                    return date.toLocaleDateString(undefined, options);
+                }
+            };
+            
+            // Logout handler
+            document.getElementById('logout-link').addEventListener('click', async () => {
+                try {
+                    await fetch('/api/logout', { method: 'POST' });
+                    localStorage.removeItem('user');
+                    window.location.href = '/';
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
