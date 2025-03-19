@@ -9,9 +9,24 @@ const { storage } = require('./server/storage');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Configure CORS for development
+// Configure CORS for development - explicitly allow Replit domains
 app.use(cors({
-  origin: true,
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    
+    // Allow all Replit domains and localhost
+    if (
+      origin.includes('.replit.dev') || 
+      origin.includes('.replit.app') || 
+      origin.includes('replit.com') || 
+      origin.includes('localhost')
+    ) {
+      return callback(null, true);
+    }
+    
+    callback(null, true); // Allow all origins in development
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -64,6 +79,11 @@ app.get('/health', (req, res) => {
 app.use('/api', (req, res, next) => {
   // This middleware only processes /api routes
   next();
+});
+
+// Test page route
+app.get('/test', (req, res) => {
+  res.sendFile(path.join(__dirname, 'test.html'));
 });
 
 // For all other requests, serve the React app's index.html
