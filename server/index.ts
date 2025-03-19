@@ -9,8 +9,14 @@ const __dirname = path.resolve();
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000');
+console.log(`Starting server on port ${PORT}`);
 
 app.use(express.json());
+
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 app.use(cors({
   origin: true,
   credentials: true
