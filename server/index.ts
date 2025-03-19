@@ -18,7 +18,7 @@ const server = registerRoutes(app);
 
 // Serve client assets in production
 if (process.env.NODE_ENV === 'production') {
-  const clientPath = path.join(process.cwd(), 'client/dist');
+  const clientPath = path.join(process.cwd(), '../client/dist');
 
   if (fs.existsSync(clientPath)) {
     app.use(express.static(clientPath));
