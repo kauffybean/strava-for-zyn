@@ -64,7 +64,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// API routes - register all routes from server/routes.js
+// API routes - register all routes from server/routes.js (which sets up passport)
 const httpServer = registerRoutes(app);
 
 // Serve static files for the React client

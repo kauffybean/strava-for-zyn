@@ -4,6 +4,7 @@ import { ProtectedRoute } from './lib/protected-route';
 import { Toaster } from './components/ui/toaster';
 import Navigation from './components/navigation';
 import { useAuth } from './hooks/use-auth';
+import { Target } from 'lucide-react';
 
 // Pages
 import HomePage from './pages/home-page';
@@ -13,7 +14,9 @@ import ProfilePage from './pages/profile-page';
 import CreatePostPage from './pages/create-post-page';
 
 function App() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+  
+  console.log('App rendering - Auth state:', { user, isLoading });
   
   // Add iOS status bar padding
   React.useEffect(() => {
@@ -45,10 +48,26 @@ function App() {
       <Router>
         <Switch>
           <Route path="/auth" component={AuthPage} />
-          <ProtectedRoute path="/" component={HomePage} />
-          <ProtectedRoute path="/profile/:id" component={ProfilePage} />
-          <ProtectedRoute path="/create" component={CreatePostPage} />
-          <Route component={NotFound} />
+          {isLoading ? (
+            // Show loading state while checking auth
+            <Route path="*">
+              <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                  <div className="inline-block animate-spin mb-4">
+                    <Target size={40} className="text-accent" />
+                  </div>
+                  <p className="text-lg font-semibold">Loading Tactical Interface...</p>
+                </div>
+              </div>
+            </Route>
+          ) : (
+            <>
+              <ProtectedRoute path="/" component={HomePage} />
+              <ProtectedRoute path="/profile/:id" component={ProfilePage} />
+              <ProtectedRoute path="/create" component={CreatePostPage} />
+              <Route component={NotFound} />
+            </>
+          )}
         </Switch>
       </Router>
       {user && <Navigation />}

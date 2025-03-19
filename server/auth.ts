@@ -29,18 +29,8 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'zynnie-secret-key-12345',
-    resave: false,
-    saveUninitialized: false,
-    store: storage.sessionStore,
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-    }
-  };
-
-  app.set("trust proxy", 1);
-  app.use(session(sessionSettings));
+  // Session middleware is already configured in app.js
+  // We only need to initialize passport here
   app.use(passport.initialize());
   app.use(passport.session());
 

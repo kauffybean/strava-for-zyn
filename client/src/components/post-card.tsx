@@ -72,20 +72,43 @@ export function PostCard({ post }: { post: PostWithUser }) {
   const { user } = useAuth();
   const [showComments, setShowComments] = useState(false);
   
+  // Early return if post is completely undefined to avoid errors
+  if (!post) {
+    console.error('PostCard received undefined post');
+    return <Card className="mb-4 p-4 text-center">Post data unavailable</Card>;
+  }
+  
   // Debug log to see the post structure
   console.log('Post received in PostCard:', post);
 
-  // Ensure post has a valid user property to prevent avatar undefined errors
-  const postWithDefaultUser = {
-    ...post,
-    user: post.user || {
+  // Handle completely missing user object
+  if (!post.user) {
+    console.warn('Post missing user data, creating default user');
+    post.user = {
       id: post.userId || 0,
       username: 'unknown',
       displayName: 'Unknown User',
-      avatar: undefined,
-      createdAt: new Date()
+      avatar: undefined
+    };
+  }
+
+  // More robust defensive programming - safely access properties and ensure defaults
+  // Deep clone and safe property access to prevent undefined errors
+  const postWithDefaultUser = {
+    ...post,
+    user: {
+      id: post.user?.id || post.userId || 0,
+      username: post.user?.username || 'unknown',
+      displayName: post.user?.displayName || 'Unknown User',
+      avatar: post.user?.avatar || undefined,
     }
   };
+  
+  // Add additional safeguards for critical properties to ensure rendering won't fail
+  if (!postWithDefaultUser.title) postWithDefaultUser.title = 'Untitled Deployment';
+  if (!postWithDefaultUser.mood) postWithDefaultUser.mood = 'focused';
+  if (!postWithDefaultUser.flavor) postWithDefaultUser.flavor = 'mint';
+  if (!postWithDefaultUser.nicotineStrength) postWithDefaultUser.nicotineStrength = 3;
   
   // Debug log for the fixed post
   console.log('Post with default user:', postWithDefaultUser);
