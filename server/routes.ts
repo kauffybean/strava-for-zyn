@@ -67,7 +67,21 @@ export function registerRoutes(app: Express): Server {
       if (!post) {
         return res.status(404).json({ error: "Post not found" });
       }
-      res.json(post);
+      
+      // Get user who created the post
+      const postUser = await storage.getUser(post.userId);
+      if (!postUser) {
+        return res.status(404).json({ error: "Post user not found" });
+      }
+      
+      // Remove password from user
+      const { password, ...userWithoutPassword } = postUser;
+      
+      // Return post with user info
+      res.json({
+        ...post,
+        user: userWithoutPassword
+      });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch post" });
     }

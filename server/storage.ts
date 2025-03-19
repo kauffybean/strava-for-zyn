@@ -539,35 +539,87 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0 ? result[0] : undefined;
   }
   
-  async getFeedPosts(userId: number): Promise<Post[]> {
+  async getFeedPosts(userId: number): Promise<(Post & { user: Omit<User, 'password'> })[]> {
     // Get all friend IDs
     const friends = await this.getFriends(userId);
     const friendIds = friends.map(f => f.id);
     
-    if (friendIds.length === 0) {
-      // If no friends, just return user's posts
-      return this.getUserPosts(userId);
+    let userIds = [userId];
+    if (friendIds.length > 0) {
+      userIds = [...userIds, ...friendIds];
     }
     
     // Get posts from user and friends
-    return await db
+    const posts = await db
       .select()
       .from(schema.posts)
       .where(
-        or(
-          eq(schema.posts.userId, userId),
-          sql`${schema.posts.userId} IN (${friendIds.join(', ')})`
-        )
+        sql`${schema.posts.userId} IN (${userIds.join(', ')})`
       )
       .orderBy(desc(schema.posts.createdAt));
+      
+    // Get all users who made these posts
+    const users = await db
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+        displayName: schema.users.displayName,
+        bio: schema.users.bio,
+        avatar: schema.users.avatar,
+        createdAt: schema.users.createdAt
+      })
+      .from(schema.users)
+      .where(sql`${schema.users.id} IN (${userIds.join(', ')})`);
+    
+    // Map users to their posts
+    return posts.map(post => {
+      const postUser = users.find(u => u.id === post.userId);
+      return {
+        ...post,
+        user: postUser || {
+          id: post.userId,
+          username: 'unknown',
+          displayName: 'Unknown User',
+          createdAt: new Date()
+        }
+      };
+    });
   }
   
-  async getUserPosts(userId: number): Promise<Post[]> {
-    return await db
+  async getUserPosts(userId: number): Promise<(Post & { user: Omit<User, 'password'> })[]> {
+    // Get posts for user
+    const posts = await db
       .select()
       .from(schema.posts)
       .where(eq(schema.posts.userId, userId))
       .orderBy(desc(schema.posts.createdAt));
+      
+    // Get user data
+    const user = await db
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+        displayName: schema.users.displayName,
+        bio: schema.users.bio,
+        avatar: schema.users.avatar,
+        createdAt: schema.users.createdAt
+      })
+      .from(schema.users)
+      .where(eq(schema.users.id, userId))
+      .limit(1);
+    
+    const userData = user.length > 0 ? user[0] : {
+      id: userId,
+      username: 'unknown',
+      displayName: 'Unknown User',
+      createdAt: new Date()
+    };
+    
+    // Map user to posts
+    return posts.map(post => ({
+      ...post,
+      user: userData
+    }));
   }
   
   async createPost(post: InsertPost): Promise<Post> {

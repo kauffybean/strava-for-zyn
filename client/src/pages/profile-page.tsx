@@ -10,7 +10,7 @@ import { Post } from '@shared/schema';
 import { useAuth } from '@/hooks/use-auth';
 import { 
   Target, Crosshair, User, ChevronLeft, Clock, 
-  Shield, Zap, AreaChart, Loader2, AlertTriangle
+  Shield, Zap, BarChart, Loader2, AlertTriangle
 } from 'lucide-react';
 
 type PostWithUser = Post & { 
@@ -181,7 +181,7 @@ export default function ProfilePage() {
         {activeTab === 'analytics' && (
           <>
             <div className="flex items-center mb-4">
-              <AreaChart size={16} className="text-accent mr-2" />
+              <BarChart size={16} className="text-accent mr-2" />
               <h2 className="font-heading text-lg tracking-wide">OPERATIONAL METRICS</h2>
             </div>
             
@@ -254,7 +254,7 @@ export default function ProfilePage() {
             ) : (
               <div className="bg-card rounded-ios p-6 shadow-card text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                  <AreaChart size={28} className="text-primary" />
+                  <BarChart size={28} className="text-primary" />
                 </div>
                 <h3 className="font-semibold mb-2">NO ANALYTICS AVAILABLE</h3>
                 <p className="text-muted mb-4">Insufficient data to generate tactical insights</p>

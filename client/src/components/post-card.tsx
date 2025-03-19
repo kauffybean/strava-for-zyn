@@ -72,6 +72,24 @@ export function PostCard({ post }: { post: PostWithUser }) {
   const { user } = useAuth();
   const [showComments, setShowComments] = useState(false);
   
+  // Debug log to see the post structure
+  console.log('Post received in PostCard:', post);
+
+  // Ensure post has a valid user property to prevent avatar undefined errors
+  const postWithDefaultUser = {
+    ...post,
+    user: post.user || {
+      id: post.userId || 0,
+      username: 'unknown',
+      displayName: 'Unknown User',
+      avatar: undefined,
+      createdAt: new Date()
+    }
+  };
+  
+  // Debug log for the fixed post
+  console.log('Post with default user:', postWithDefaultUser);
+  
   // Fetch reactions (signals from other users)
   const { data: reactions = [] } = useQuery<(Reaction & { user: { id: number; displayName: string } })[]>({
     queryKey: [`/api/posts/${post.id}/reactions`],
@@ -152,14 +170,14 @@ export function PostCard({ post }: { post: PostWithUser }) {
       <CardHeader className="pb-2 relative">
         <div className="flex items-center">
           <div className="w-11 h-11 rounded-full border-2 border-primary/20 bg-background flex items-center justify-center text-primary overflow-hidden mr-3 relative">
-            {post.user.avatar ? (
+            {postWithDefaultUser.user.avatar ? (
               <img 
-                src={post.user.avatar} 
-                alt={post.user.displayName} 
+                src={postWithDefaultUser.user.avatar} 
+                alt={postWithDefaultUser.user.displayName} 
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="font-heading font-bold text-lg">{post.user.displayName.charAt(0).toUpperCase()}</span>
+              <span className="font-heading font-bold text-lg">{postWithDefaultUser.user.displayName.charAt(0).toUpperCase()}</span>
             )}
             <div className="absolute bottom-0 right-0 w-4 h-4 bg-accent rounded-full border border-white flex items-center justify-center">
               <Target size={8} className="text-white" />
@@ -167,8 +185,8 @@ export function PostCard({ post }: { post: PostWithUser }) {
           </div>
           <div>
             <div className="flex items-center">
-              <Link href={`/profile/${post.user.id}`} className="font-heading font-semibold text-sm hover:underline">
-                {post.user.displayName}
+              <Link href={`/profile/${postWithDefaultUser.user.id}`} className="font-heading font-semibold text-sm hover:underline">
+                {postWithDefaultUser.user.displayName}
               </Link>
               <span className="ml-2 text-xs bg-primary/10 px-1.5 py-0.5 rounded-sm text-primary font-medium">
                 {getNicotineRank(post.nicotineStrength)}
