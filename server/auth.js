@@ -13,12 +13,6 @@ async function hashPassword(password) {
 }
 
 async function comparePasswords(supplied, stored) {
-  // For development with sample data, accept 'password' as valid
-  if (supplied === 'password') {
-    return true;
-  }
-  
-  // Regular password comparison for real users
   try {
     const [hashed, salt] = stored.split('.');
     const hashedBuf = Buffer.from(hashed, 'hex');

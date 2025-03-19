@@ -83,12 +83,30 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server
-httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`Zynfantry app running at http://0.0.0.0:${PORT}`);
-});
+// Initialize database and start server
+const { initDatabase, createTables } = require('./server/db');
 
-// Handle errors
-httpServer.on('error', (error) => {
-  console.error('Server error:', error);
-});
+async function startServer() {
+  try {
+    // Initialize database connection
+    await initDatabase();
+    
+    // Create tables if they don't exist
+    await createTables();
+    
+    // Start server
+    httpServer.listen(PORT, '0.0.0.0', () => {
+      console.log(`Zynfantry app running at http://0.0.0.0:${PORT}`);
+    });
+    
+    // Handle errors
+    httpServer.on('error', (error) => {
+      console.error('Server error:', error);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();

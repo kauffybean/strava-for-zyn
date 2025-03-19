@@ -1,548 +1,445 @@
-const createMemoryStore = require('memorystore');
+const { db, pool } = require('./db');
+const { and, or, eq, desc, sql } = require('drizzle-orm');
+const schema = require('../shared/db');
 const session = require('express-session');
+const connectPg = require('connect-pg-simple');
 
-const MemoryStore = createMemoryStore(session);
+const PostgresSessionStore = connectPg(session);
 
-class MemStorage {
+// Storage interface for PostgreSQL database
+class DatabaseStorage {
   constructor() {
-    this.users = [];
-    this.friends = [];
-    this.posts = [];
-    this.comments = [];
-    this.reactions = [];
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 * 7, // prune expired entries every 7 days
-      stale: false, // don't delete stale sessions
-      ttl: 7 * 24 * 60 * 60 * 1000 // TTL of 7 days to match cookie maxAge
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
     });
-    
-    // Add sample data for development
-    this._createSampleData();
   }
-
-  _createSampleData() {
-    // Create a test user
-    const hashedPassword = '$2b$10$A7B8C9D0E1F2G3H4I5J6K7.L8M9N0O1P2Q3R4S5T6U7V8W9X0Y1Z2'; // 'password'
-    
-    // Sample users with military-themed usernames
-    this.users = [
-      {
-        id: 1,
-        username: 'commander',
-        password: hashedPassword,
-        displayName: 'Field Commander',
-        bio: 'Leading the Zyn battalion since 2021. Veteran of multiple flavor campaigns.',
-        avatar: 'https://robohash.org/commander?set=set4',
-        createdAt: new Date('2023-01-01')
-      },
-      {
-        id: 2,
-        username: 'sergeant',
-        password: hashedPassword,
-        displayName: 'Sergeant Pouch',
-        bio: 'Tactical Zyn specialist. Mint is my signature deployment.',
-        avatar: 'https://robohash.org/sergeant?set=set4',
-        createdAt: new Date('2023-02-15')
-      },
-      {
-        id: 3,
-        username: 'recruit',
-        password: hashedPassword,
-        displayName: 'New Recruit',
-        bio: 'Fresh to the Zynfantry. Learning the tactics from the veterans.',
-        avatar: 'https://robohash.org/recruit?set=set4',
-        createdAt: new Date('2023-05-20')
-      }
-    ];
-    
-    // Sample friend connections
-    this.friends = [
-      {
-        id: 1,
-        userId: 1,
-        friendId: 2,
-        status: 'accepted',
-        createdAt: new Date('2023-03-01')
-      },
-      {
-        id: 2,
-        userId: 1,
-        friendId: 3,
-        status: 'accepted',
-        createdAt: new Date('2023-06-01')
-      },
-      {
-        id: 3,
-        userId: 2,
-        friendId: 3,
-        status: 'pending',
-        createdAt: new Date('2023-06-15')
-      }
-    ];
-    
-    // Sample posts with military-themed content
-    this.posts = [
-      {
-        id: 1,
-        userId: 1,
-        title: 'Morning Deployment',
-        description: 'Starting the day with a tactical mint deployment. Essential for mission readiness.',
-        imageUrl: 'https://picsum.photos/seed/zynpost1/500/300',
-        latitude: 40.7128,
-        longitude: -74.0060,
-        locationName: 'Base Camp Alpha',
-        startTime: new Date('2023-07-15T08:00:00'),
-        duration: 45,
-        nicotineStrength: 6,
-        flavor: 'Mint',
-        mood: 'Focused',
-        createdAt: new Date('2023-07-15T08:45:00')
-      },
-      {
-        id: 2,
-        userId: 2,
-        title: 'Field Operation Success',
-        description: 'Completed the afternoon patrol with a wintergreen tactical aid. Morale is high.',
-        imageUrl: 'https://picsum.photos/seed/zynpost2/500/300',
-        latitude: 34.0522,
-        longitude: -118.2437,
-        locationName: 'Forward Operating Base',
-        startTime: new Date('2023-07-16T14:30:00'),
-        duration: 30,
-        nicotineStrength: 3,
-        flavor: 'Wintergreen',
-        mood: 'Energized',
-        createdAt: new Date('2023-07-16T15:00:00')
-      },
-      {
-        id: 3,
-        userId: 3,
-        title: 'First Deployment',
-        description: 'Rookie mission with my first citrus pouch. The veterans have trained me well.',
-        imageUrl: 'https://picsum.photos/seed/zynpost3/500/300',
-        startTime: new Date('2023-07-17T10:15:00'),
-        duration: 20,
-        nicotineStrength: 1.5,
-        flavor: 'Citrus',
-        mood: 'Nervous',
-        createdAt: new Date('2023-07-17T10:35:00')
-      }
-    ];
-    
-    // Sample comments
-    this.comments = [
-      {
-        id: 1,
-        postId: 1,
-        userId: 2,
-        content: 'Solid deployment strategy, Commander!',
-        createdAt: new Date('2023-07-15T09:30:00')
-      },
-      {
-        id: 2,
-        postId: 1,
-        userId: 3,
-        content: 'Taking notes on your tactical approach.',
-        createdAt: new Date('2023-07-15T10:15:00')
-      },
-      {
-        id: 3,
-        postId: 2,
-        userId: 1,
-        content: 'Well executed, Sergeant. That winter deployment is top-notch.',
-        createdAt: new Date('2023-07-16T16:00:00')
-      },
-      {
-        id: 4,
-        postId: 3,
-        userId: 1,
-        content: 'Welcome to the Zynfantry, Recruit! First mission success.',
-        createdAt: new Date('2023-07-17T11:00:00')
-      }
-    ];
-    
-    // Sample reactions
-    this.reactions = [
-      {
-        id: 1,
-        postId: 1,
-        userId: 2,
-        type: 'like',
-        createdAt: new Date('2023-07-15T09:15:00')
-      },
-      {
-        id: 2,
-        postId: 1,
-        userId: 3,
-        type: 'love',
-        createdAt: new Date('2023-07-15T09:45:00')
-      },
-      {
-        id: 3,
-        postId: 2,
-        userId: 1,
-        type: 'like',
-        createdAt: new Date('2023-07-16T15:30:00')
-      },
-      {
-        id: 4,
-        postId: 2,
-        userId: 3,
-        type: 'like',
-        createdAt: new Date('2023-07-16T17:00:00')
-      },
-      {
-        id: 5,
-        postId: 3,
-        userId: 1,
-        type: 'love',
-        createdAt: new Date('2023-07-17T11:15:00')
-      },
-      {
-        id: 6,
-        postId: 3,
-        userId: 2,
-        type: 'like',
-        createdAt: new Date('2023-07-17T12:00:00')
-      }
-    ];
-  }
-
+  
   // User methods
   async getUser(id) {
-    return this.users.find(user => user.id === id);
+    const result = await db.select().from(schema.users).where(eq(schema.users.id, id)).limit(1);
+    return result.length > 0 ? result[0] : undefined;
   }
-
+  
   async getUserByUsername(username) {
-    return this.users.find(user => user.username === username);
+    const result = await db
+      .select()
+      .from(schema.users)
+      .where(sql`LOWER(${schema.users.username}) = LOWER(${username})`)
+      .limit(1);
+    return result.length > 0 ? result[0] : undefined;
   }
-
+  
   async createUser(userData) {
-    const newUser = {
-      id: this.users.length + 1,
-      ...userData,
-      createdAt: new Date(),
-    };
-    this.users.push(newUser);
-    return newUser;
+    const result = await db.insert(schema.users).values({
+      username: userData.username,
+      password: userData.password,
+      displayName: userData.displayName || userData.username,
+      bio: userData.bio,
+      avatar: userData.avatar
+    }).returning();
+    
+    return result[0];
   }
-
+  
   async updateUser(id, userData) {
-    const index = this.users.findIndex(user => user.id === id);
-    if (index === -1) {
-      throw new Error('User not found');
+    const result = await db
+      .update(schema.users)
+      .set(userData)
+      .where(eq(schema.users.id, id))
+      .returning();
+      
+    if (result.length === 0) {
+      throw new Error("User not found");
     }
     
-    const updatedUser = {
-      ...this.users[index],
-      ...userData,
-    };
-    this.users[index] = updatedUser;
-    return updatedUser;
+    return result[0];
   }
-
+  
   // Friend methods
   async getFriends(userId) {
-    const acceptedFriendships = this.friends.filter(
-      f => (f.userId === userId || f.friendId === userId) && f.status === 'accepted'
+    // Get all user ids who are friends with this user
+    const friendships = await db
+      .select()
+      .from(schema.friends)
+      .where(
+        and(
+          or(
+            eq(schema.friends.userId, userId),
+            eq(schema.friends.friendId, userId)
+          ),
+          eq(schema.friends.status, 'accepted')
+        )
+      );
+    
+    // Extract friend IDs
+    const friendIds = friendships.map(f => 
+      f.userId === userId ? f.friendId : f.userId
     );
     
-    return Promise.all(
-      acceptedFriendships.map(async (friendship) => {
-        const friendId = friendship.userId === userId ? friendship.friendId : friendship.userId;
-        const friend = await this.getUser(friendId);
-        if (!friend) return null;
-        
-        const { password, ...friendWithoutPassword } = friend;
-        return friendWithoutPassword;
+    if (friendIds.length === 0) {
+      return [];
+    }
+    
+    // Get user objects for all friends
+    const friends = await db
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+        displayName: schema.users.displayName,
+        bio: schema.users.bio,
+        avatar: schema.users.avatar,
+        createdAt: schema.users.createdAt
       })
-    ).then(friends => friends.filter(Boolean));
+      .from(schema.users)
+      .where(sql`${schema.users.id} IN (${friendIds.join(', ')})`);
+    
+    return friends;
   }
-
+  
   async getFriendRequests(userId) {
-    return this.friends.filter(
-      f => f.friendId === userId && f.status === 'pending'
-    );
+    return await db
+      .select()
+      .from(schema.friends)
+      .where(
+        and(
+          eq(schema.friends.friendId, userId),
+          eq(schema.friends.status, 'pending')
+        )
+      );
   }
-
+  
   async createFriendRequest(userId, friendId) {
-    // Check if friendship already exists
-    const existing = this.friends.find(
-      f => (f.userId === userId && f.friendId === friendId) ||
-           (f.userId === friendId && f.friendId === userId)
-    );
+    // Check if users exist
+    const user = await this.getUser(userId);
+    const friend = await this.getUser(friendId);
     
-    if (existing) {
-      return existing;
+    if (!user || !friend) {
+      throw new Error("User or friend not found");
     }
     
-    const newFriendRequest = {
-      id: this.friends.length + 1,
-      userId,
-      friendId,
-      status: 'pending',
-      createdAt: new Date(),
-    };
+    // Check if request already exists
+    const existingRequests = await db
+      .select()
+      .from(schema.friends)
+      .where(
+        or(
+          and(
+            eq(schema.friends.userId, userId),
+            eq(schema.friends.friendId, friendId)
+          ),
+          and(
+            eq(schema.friends.userId, friendId),
+            eq(schema.friends.friendId, userId)
+          )
+        )
+      );
     
-    this.friends.push(newFriendRequest);
-    return newFriendRequest;
+    if (existingRequests.length > 0) {
+      throw new Error("Friend request already exists");
+    }
+    
+    // Create the friendship request
+    const result = await db
+      .insert(schema.friends)
+      .values({
+        userId,
+        friendId,
+        status: 'pending'
+      })
+      .returning();
+    
+    return result[0];
   }
-
+  
   async acceptFriendRequest(requestId, userId) {
-    const index = this.friends.findIndex(
-      f => f.id === requestId && f.friendId === userId
-    );
+    const result = await db
+      .update(schema.friends)
+      .set({ status: 'accepted' })
+      .where(
+        and(
+          eq(schema.friends.id, requestId),
+          eq(schema.friends.friendId, userId)
+        )
+      )
+      .returning();
     
-    if (index === -1) {
-      throw new Error('Friend request not found');
+    if (result.length === 0) {
+      throw new Error("Friend request not found");
     }
     
-    const updatedRequest = {
-      ...this.friends[index],
-      status: 'accepted',
-    };
-    
-    this.friends[index] = updatedRequest;
-    return updatedRequest;
+    return result[0];
   }
-
+  
   // Post methods
   async getPost(id) {
-    const post = this.posts.find(post => post.id === id);
-    if (!post) return null;
+    const result = await db
+      .select()
+      .from(schema.posts)
+      .where(eq(schema.posts.id, id))
+      .limit(1);
     
-    // Add user data to post
-    const user = await this.getUser(post.userId);
-    if (!user) return post;
-    
-    const { password, ...userWithoutPassword } = user;
-    return {
-      ...post,
-      user: userWithoutPassword,
-    };
+    return result.length > 0 ? result[0] : undefined;
   }
-
+  
   async getFeedPosts(userId) {
     // Get all friend IDs
     const friends = await this.getFriends(userId);
     const friendIds = friends.map(f => f.id);
     
-    // Get posts from user and friends, sorted by creation date (newest first)
-    const feedPosts = this.posts
-      .filter(post => post.userId === userId || friendIds.includes(post.userId))
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
-    // Add user data to posts
-    return Promise.all(
-      feedPosts.map(async (post) => {
-        const user = await this.getUser(post.userId);
-        if (!user) return post;
-        
-        const { password, ...userWithoutPassword } = user;
-        return {
-          ...post,
-          user: userWithoutPassword,
-        };
-      })
-    );
-  }
-
-  async getUserPosts(userId) {
-    // Get user's posts, sorted by creation date (newest first)
-    const userPosts = this.posts
-      .filter(post => post.userId === userId)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
-    // Add user data to posts
-    return Promise.all(
-      userPosts.map(async (post) => {
-        const user = await this.getUser(post.userId);
-        if (!user) return post;
-        
-        const { password, ...userWithoutPassword } = user;
-        return {
-          ...post,
-          user: userWithoutPassword,
-        };
-      })
-    );
-  }
-
-  async createPost(postData) {
-    const newPost = {
-      id: this.posts.length + 1,
-      ...postData,
-      createdAt: new Date(),
-    };
-    
-    this.posts.push(newPost);
-    
-    // Add user data to post
-    const user = await this.getUser(newPost.userId);
-    if (!user) return newPost;
-    
-    const { password, ...userWithoutPassword } = user;
-    return {
-      ...newPost,
-      user: userWithoutPassword,
-    };
-  }
-
-  // Comment methods
-  async getComments(postId) {
-    const postComments = this.comments
-      .filter(comment => comment.postId === postId)
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    
-    // Add user data to comments
-    return Promise.all(
-      postComments.map(async (comment) => {
-        const user = await this.getUser(comment.userId);
-        if (!user) return comment;
-        
-        const { password, ...userWithoutPassword } = user;
-        return {
-          ...comment,
-          user: userWithoutPassword,
-        };
-      })
-    );
-  }
-
-  async createComment(commentData) {
-    const newComment = {
-      id: this.comments.length + 1,
-      ...commentData,
-      createdAt: new Date(),
-    };
-    
-    this.comments.push(newComment);
-    
-    // Add user data to comment
-    const user = await this.getUser(newComment.userId);
-    if (!user) return newComment;
-    
-    const { password, ...userWithoutPassword } = user;
-    return {
-      ...newComment,
-      user: userWithoutPassword,
-    };
-  }
-
-  // Reaction methods
-  async getReactions(postId) {
-    const postReactions = this.reactions.filter(
-      reaction => reaction.postId === postId
-    );
-    
-    // Add user data to reactions
-    return Promise.all(
-      postReactions.map(async (reaction) => {
-        const user = await this.getUser(reaction.userId);
-        if (!user) return reaction;
-        
-        const { password, ...userWithoutPassword } = user;
-        return {
-          ...reaction,
-          user: userWithoutPassword,
-        };
-      })
-    );
-  }
-
-  async createReaction(reactionData) {
-    // Check if user already reacted to the post
-    const existingIndex = this.reactions.findIndex(
-      r => r.postId === reactionData.postId && r.userId === reactionData.userId
-    );
-    
-    let newReaction;
-    
-    if (existingIndex !== -1) {
-      // Update existing reaction
-      newReaction = {
-        ...this.reactions[existingIndex],
-        type: reactionData.type,
-      };
-      this.reactions[existingIndex] = newReaction;
-    } else {
-      // Create new reaction
-      newReaction = {
-        id: this.reactions.length + 1,
-        ...reactionData,
-        createdAt: new Date(),
-      };
-      this.reactions.push(newReaction);
+    if (friendIds.length === 0) {
+      // If no friends, just return user's posts
+      return this.getUserPosts(userId);
     }
     
-    // Add user data to reaction
-    const user = await this.getUser(newReaction.userId);
-    if (!user) return newReaction;
-    
-    const { password, ...userWithoutPassword } = user;
-    return {
-      ...newReaction,
-      user: userWithoutPassword,
-    };
+    // Get posts from user and friends
+    return await db
+      .select()
+      .from(schema.posts)
+      .where(
+        or(
+          eq(schema.posts.userId, userId),
+          sql`${schema.posts.userId} IN (${friendIds.join(', ')})`
+        )
+      )
+      .orderBy(desc(schema.posts.createdAt));
   }
-
-  // Analytics methods
-  async getUserAnalytics(userId) {
-    const userPosts = this.posts.filter(post => post.userId === userId);
+  
+  async getUserPosts(userId) {
+    return await db
+      .select()
+      .from(schema.posts)
+      .where(eq(schema.posts.userId, userId))
+      .orderBy(desc(schema.posts.createdAt));
+  }
+  
+  async createPost(post) {
+    const result = await db
+      .insert(schema.posts)
+      .values({
+        userId: post.userId,
+        title: post.title,
+        description: post.description,
+        imageUrl: post.imageUrl,
+        latitude: post.latitude,
+        longitude: post.longitude,
+        locationName: post.locationName,
+        startTime: post.startTime || new Date(),
+        duration: post.duration,
+        nicotineStrength: post.nicotineStrength,
+        flavor: post.flavor,
+        mood: post.mood
+      })
+      .returning();
     
-    // Calculate analytics
+    return result[0];
+  }
+  
+  // Comment methods
+  async getComments(postId) {
+    const comments = await db
+      .select({
+        id: schema.comments.id,
+        postId: schema.comments.postId,
+        userId: schema.comments.userId,
+        content: schema.comments.content,
+        createdAt: schema.comments.createdAt,
+        user: {
+          id: schema.users.id,
+          username: schema.users.username,
+          displayName: schema.users.displayName,
+          bio: schema.users.bio,
+          avatar: schema.users.avatar,
+          createdAt: schema.users.createdAt
+        }
+      })
+      .from(schema.comments)
+      .innerJoin(schema.users, eq(schema.comments.userId, schema.users.id))
+      .where(eq(schema.comments.postId, postId))
+      .orderBy(schema.comments.createdAt);
+    
+    return comments;
+  }
+  
+  async createComment(comment) {
+    const result = await db
+      .insert(schema.comments)
+      .values({
+        postId: comment.postId,
+        userId: comment.userId,
+        content: comment.content
+      })
+      .returning();
+    
+    return result[0];
+  }
+  
+  // Reaction methods
+  async getReactions(postId) {
+    const reactions = await db
+      .select({
+        id: schema.reactions.id,
+        postId: schema.reactions.postId,
+        userId: schema.reactions.userId,
+        type: schema.reactions.type,
+        createdAt: schema.reactions.createdAt,
+        user: {
+          id: schema.users.id,
+          username: schema.users.username,
+          displayName: schema.users.displayName,
+          bio: schema.users.bio,
+          avatar: schema.users.avatar,
+          createdAt: schema.users.createdAt
+        }
+      })
+      .from(schema.reactions)
+      .innerJoin(schema.users, eq(schema.reactions.userId, schema.users.id))
+      .where(eq(schema.reactions.postId, postId));
+    
+    return reactions;
+  }
+  
+  async createReaction(reaction) {
+    // Check if user already reacted to this post
+    const existingReactions = await db
+      .select()
+      .from(schema.reactions)
+      .where(
+        and(
+          eq(schema.reactions.postId, reaction.postId),
+          eq(schema.reactions.userId, reaction.userId)
+        )
+      );
+    
+    const existingReaction = existingReactions.length > 0 ? existingReactions[0] : null;
+    
+    if (existingReaction) {
+      // If user reacted with the same type, remove the reaction
+      if (existingReaction.type === reaction.type) {
+        await db
+          .delete(schema.reactions)
+          .where(eq(schema.reactions.id, existingReaction.id));
+        
+        return existingReaction;
+      }
+      
+      // If user reacted with a different type, update the reaction
+      const result = await db
+        .update(schema.reactions)
+        .set({ type: reaction.type })
+        .where(eq(schema.reactions.id, existingReaction.id))
+        .returning();
+      
+      return result[0];
+    }
+    
+    // Otherwise, create a new reaction
+    const result = await db
+      .insert(schema.reactions)
+      .values({
+        postId: reaction.postId,
+        userId: reaction.userId,
+        type: reaction.type
+      })
+      .returning();
+    
+    return result[0];
+  }
+  
+  // Analytics
+  async getUserAnalytics(userId) {
+    const userPosts = await this.getUserPosts(userId);
+    
+    // Calculate total posts
     const totalPosts = userPosts.length;
     
-    // Group posts by nicotine strength
-    const nicotineStrengthData = {};
+    // Calculate nicotine consumption
+    const totalNicotine = userPosts.reduce((sum, post) => sum + Number(post.nicotineStrength), 0);
+    
+    // Calculate favorite flavor
+    const flavorCounts = {};
     userPosts.forEach(post => {
-      const strength = post.nicotineStrength.toString();
-      nicotineStrengthData[strength] = (nicotineStrengthData[strength] || 0) + 1;
+      flavorCounts[post.flavor] = (flavorCounts[post.flavor] || 0) + 1;
     });
+    const favoriteFlavorEntries = Object.entries(flavorCounts);
+    const favoriteFlavorEntry = favoriteFlavorEntries.length > 0 
+      ? favoriteFlavorEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max, ['None', 0])
+      : ['None', 0];
+    const favoriteFlavorPercentage = totalPosts > 0 
+      ? Math.round((favoriteFlavorEntry[1] / totalPosts) * 100) 
+      : 0;
     
-    // Group posts by flavor
-    const flavorData = {};
+    // Calculate favorite mood
+    const moodCounts = {};
     userPosts.forEach(post => {
-      flavorData[post.flavor] = (flavorData[post.flavor] || 0) + 1;
+      moodCounts[post.mood] = (moodCounts[post.mood] || 0) + 1;
     });
+    const favoriteMoodEntries = Object.entries(moodCounts);
+    const favoriteMoodEntry = favoriteMoodEntries.length > 0 
+      ? favoriteMoodEntries.reduce((max, entry) => entry[1] > max[1] ? entry : max, ['None', 0])
+      : ['None', 0];
+    const favoriteMoodPercentage = totalPosts > 0 
+      ? Math.round((favoriteMoodEntry[1] / totalPosts) * 100) 
+      : 0;
     
-    // Group posts by mood
-    const moodData = {};
+    // Get total reactions
+    let totalReactions = 0;
+    for (const post of userPosts) {
+      const reactions = await this.getReactions(post.id);
+      totalReactions += reactions.length;
+    }
+    
+    // Most active hour
+    const hourCounts = {};
     userPosts.forEach(post => {
-      moodData[post.mood] = (moodData[post.mood] || 0) + 1;
+      const hour = new Date(post.startTime).getHours();
+      hourCounts[hour] = (hourCounts[hour] || 0) + 1;
     });
-    
-    // Calculate total reactions received
-    const totalReactions = this.reactions.filter(
-      reaction => userPosts.some(post => post.id === reaction.postId)
-    ).length;
-    
-    // Calculate total comments received
-    const totalComments = this.comments.filter(
-      comment => userPosts.some(post => post.id === comment.postId)
-    ).length;
+    const mostActiveHourEntries = Object.entries(hourCounts);
+    const mostActiveHourEntry = mostActiveHourEntries.length > 0 
+      ? mostActiveHourEntries.reduce((max, entry) => parseInt(entry[0]) > parseInt(max[0]) ? entry : max, ['0', 0])
+      : ['0', 0];
     
     return {
       totalPosts,
-      nicotineStrengthData,
-      flavorData,
-      moodData,
+      totalNicotine,
+      favoriteFlavorName: favoriteFlavorEntry[0],
+      favoriteFlavorCount: favoriteFlavorEntry[1],
+      favoriteFlavorPercentage,
+      favoriteMoodName: favoriteMoodEntry[0],
+      favoriteMoodCount: favoriteMoodEntry[1],
+      favoriteMoodPercentage,
       totalReactions,
-      totalComments,
+      mostActiveHour: parseInt(mostActiveHourEntry[0]),
+      mostActiveHourCount: mostActiveHourEntry[1],
     };
   }
-
-  // Search methods
+  
+  // Search
   async searchUsers(query) {
-    const matchingUsers = this.users.filter(
-      user => user.username.toLowerCase().includes(query.toLowerCase()) ||
-              user.displayName.toLowerCase().includes(query.toLowerCase())
-    );
+    const users = await db
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+        displayName: schema.users.displayName,
+        bio: schema.users.bio,
+        avatar: schema.users.avatar,
+        createdAt: schema.users.createdAt
+      })
+      .from(schema.users)
+      .where(
+        or(
+          sql`LOWER(${schema.users.username}) LIKE LOWER(${'%' + query + '%'})`,
+          sql`LOWER(${schema.users.displayName}) LIKE LOWER(${'%' + query + '%'})`
+        )
+      )
+      .limit(10);
     
-    return matchingUsers.map(({ password, ...userWithoutPassword }) => userWithoutPassword);
+    return users;
   }
 }
 
-const storage = new MemStorage();
+// Create and export the storage instance
+const storage = new DatabaseStorage();
 
 module.exports = { storage };
