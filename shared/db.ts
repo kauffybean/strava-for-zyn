@@ -7,51 +7,51 @@ export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: text('username').notNull().unique(),
   password: text('password').notNull(),
-  displayName: text('display_name').notNull(),
+  displayName: text('displayName').notNull(),
   bio: text('bio'),
   avatar: text('avatar'),
-  createdAt: timestamp('created_at').defaultNow().notNull()
+  createdAt: timestamp('createdAt').defaultNow().notNull()
 });
 
 export const friends = pgTable('friends', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => users.id),
-  friendId: integer('friend_id').notNull().references(() => users.id),
+  userId: integer('userId').notNull().references(() => users.id),
+  friendId: integer('friendId').notNull().references(() => users.id),
   status: text('status', { enum: ['pending', 'accepted'] }).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull()
+  createdAt: timestamp('createdAt').defaultNow().notNull()
 });
 
 export const posts = pgTable('posts', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => users.id),
+  userId: integer('userId').notNull().references(() => users.id),
   title: text('title').notNull(),
   description: text('description'),
-  imageUrl: text('image_url'),
+  imageUrl: text('imageUrl'),
   latitude: decimal('latitude', { precision: 10, scale: 6 }),
   longitude: decimal('longitude', { precision: 10, scale: 6 }),
-  locationName: text('location_name'),
-  startTime: timestamp('start_time').notNull(),
+  locationName: text('locationName'),
+  startTime: timestamp('startTime').notNull(),
   duration: integer('duration'), // in minutes
-  nicotineStrength: decimal('nicotine_strength').notNull(), // in mg
+  nicotineStrength: decimal('nicotineStrength').notNull(), // in mg
   flavor: text('flavor').notNull(),
   mood: text('mood').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull()
+  createdAt: timestamp('createdAt').defaultNow().notNull()
 });
 
 export const comments = pgTable('comments', {
   id: serial('id').primaryKey(),
-  postId: integer('post_id').notNull().references(() => posts.id),
-  userId: integer('user_id').notNull().references(() => users.id),
+  postId: integer('postId').notNull().references(() => posts.id),
+  userId: integer('userId').notNull().references(() => users.id),
   content: text('content').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull()
+  createdAt: timestamp('createdAt').defaultNow().notNull()
 });
 
 export const reactions = pgTable('reactions', {
   id: serial('id').primaryKey(),
-  postId: integer('post_id').notNull().references(() => posts.id),
-  userId: integer('user_id').notNull().references(() => users.id),
+  postId: integer('postId').notNull().references(() => posts.id),
+  userId: integer('userId').notNull().references(() => users.id),
   type: text('type').notNull(), // 'like', 'love', 'laugh', etc.
-  createdAt: timestamp('created_at').defaultNow().notNull()
+  createdAt: timestamp('createdAt').defaultNow().notNull()
 });
 
 export const sessions = pgTable('sessions', {

@@ -33,7 +33,7 @@ export async function initDatabase() {
 export async function createTables() {
   try {
     // Create users table if it doesn't exist
-    await db.execute(sql`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS "users" (
         "id" SERIAL PRIMARY KEY,
         "username" VARCHAR(100) NOT NULL UNIQUE,
@@ -46,7 +46,7 @@ export async function createTables() {
     `);
 
     // Create friends table if it doesn't exist
-    await db.execute(sql`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS "friends" (
         "id" SERIAL PRIMARY KEY,
         "userId" INTEGER NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
@@ -58,7 +58,7 @@ export async function createTables() {
     `);
 
     // Create posts table if it doesn't exist
-    await db.execute(sql`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS "posts" (
         "id" SERIAL PRIMARY KEY,
         "userId" INTEGER NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
@@ -78,7 +78,7 @@ export async function createTables() {
     `);
 
     // Create comments table if it doesn't exist
-    await db.execute(sql`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS "comments" (
         "id" SERIAL PRIMARY KEY,
         "postId" INTEGER NOT NULL REFERENCES "posts"("id") ON DELETE CASCADE,
@@ -89,7 +89,7 @@ export async function createTables() {
     `);
 
     // Create reactions table if it doesn't exist
-    await db.execute(sql`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS "reactions" (
         "id" SERIAL PRIMARY KEY,
         "postId" INTEGER NOT NULL REFERENCES "posts"("id") ON DELETE CASCADE,
@@ -101,7 +101,7 @@ export async function createTables() {
     `);
 
     // Create sessions table if it doesn't exist (for connect-pg-simple)
-    await db.execute(sql`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS "sessions" (
         "sid" VARCHAR NOT NULL PRIMARY KEY,
         "sess" JSON NOT NULL,

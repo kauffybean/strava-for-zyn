@@ -649,22 +649,25 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createPost(post: InsertPost): Promise<Post> {
+    // Convert types to match the database schema
+    const newPost: typeof schema.posts.$inferInsert = {
+      userId: post.userId,
+      title: post.title,
+      description: post.description,
+      imageUrl: post.imageUrl,
+      latitude: post.latitude ? post.latitude.toString() : null,
+      longitude: post.longitude ? post.longitude.toString() : null,
+      locationName: post.locationName,
+      startTime: post.startTime || new Date(),
+      duration: post.duration,
+      nicotineStrength: post.nicotineStrength ? post.nicotineStrength.toString() : "0",
+      flavor: post.flavor,
+      mood: post.mood
+    };
+    
     const result = await db
       .insert(schema.posts)
-      .values({
-        user_id: post.userId,
-        title: post.title,
-        description: post.description,
-        image_url: post.imageUrl,
-        latitude: post.latitude,
-        longitude: post.longitude,
-        location_name: post.locationName,
-        start_time: post.startTime || new Date(),
-        duration: post.duration,
-        nicotine_strength: Number(post.nicotineStrength), // Ensure number type
-        flavor: post.flavor,
-        mood: post.mood
-      })
+      .values(newPost)
       .returning();
     
     // Ensure the nicotineStrength is returned as a number
@@ -710,13 +713,16 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createComment(comment: InsertComment): Promise<Comment> {
+    // Use the schema definition correctly with the Drizzle inferred type
+    const newComment: typeof schema.comments.$inferInsert = {
+      postId: comment.postId,
+      userId: comment.userId,
+      content: comment.content
+    };
+    
     const result = await db
       .insert(schema.comments)
-      .values({
-        post_id: comment.postId,
-        user_id: comment.userId,
-        content: comment.content
-      })
+      .values(newComment)
       .returning();
     
     return result[0];
@@ -789,13 +795,15 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Otherwise, create a new reaction
+    const newReaction: typeof schema.reactions.$inferInsert = {
+      postId: reaction.postId,
+      userId: reaction.userId,
+      type: reaction.type
+    };
+    
     const result = await db
       .insert(schema.reactions)
-      .values({
-        post_id: reaction.postId,
-        user_id: reaction.userId,
-        type: reaction.type
-      })
+      .values(newReaction)
       .returning();
     
     return result[0];
