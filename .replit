@@ -31,7 +31,7 @@ args = "node app.js"
 waitForPort = 5000
 
 [deployment]
-run = ["sh", "-c", "cd server && NODE_ENV=production node dist/index.js"]
+run = ["sh", "-c", "cd server && NODE_ENV=production PORT=5001 node dist/index.js"]
 build = ["sh", "-c", "npm install && cd server && npx tsc"]
 
 [[ports]]

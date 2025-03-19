@@ -2,12 +2,10 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import { registerRoutes } from './routes.js';
+import { registerRoutes } from './routes';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Node.js path resolution for CommonJS compatibility
+const __dirname = path.resolve();
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000');
@@ -21,9 +19,9 @@ app.use(cors({
 const server = registerRoutes(app);
 
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
+  app.use(express.static(path.join(__dirname, 'client/build')));
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+    res.sendFile(path.join(__dirname, 'client/build/index.html'));
   });
 }
 
