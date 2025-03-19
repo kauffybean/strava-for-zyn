@@ -29,8 +29,8 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
-  // Session middleware is already configured in app.js
-  // We only need to initialize passport here
+  // Passport initialization - IMPORTANT: passport.session() must be used AFTER express-session middleware
+  // The express-session middleware is already configured in app.js
   app.use(passport.initialize());
   app.use(passport.session());
 

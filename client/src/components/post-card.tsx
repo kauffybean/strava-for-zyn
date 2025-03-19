@@ -81,21 +81,23 @@ export function PostCard({ post }: { post: PostWithUser }) {
   // Debug log to see the post structure
   console.log('Post received in PostCard:', post);
 
-  // Handle completely missing user object
-  if (!post.user) {
-    console.warn('Post missing user data, creating default user');
-    post.user = {
-      id: post.userId || 0,
-      username: 'unknown',
-      displayName: 'Unknown User',
-      avatar: undefined
-    };
-  }
-
-  // More robust defensive programming - safely access properties and ensure defaults
-  // Deep clone and safe property access to prevent undefined errors
+  // Create a safe clone of the post with guaranteed default values for all required fields
+  // This prevents errors when accessing nested properties
   const postWithDefaultUser = {
     ...post,
+    id: post.id || 0,
+    userId: post.userId || 0,
+    title: post.title || 'Untitled Deployment',
+    description: post.description || undefined,
+    imageUrl: post.imageUrl || undefined,
+    locationName: post.locationName || undefined,
+    startTime: post.startTime || new Date(),
+    duration: post.duration || 0,
+    nicotineStrength: post.nicotineStrength || 3,
+    flavor: post.flavor || 'mint',
+    mood: post.mood || 'focused',
+    createdAt: post.createdAt || new Date(),
+    // Ensure user object always exists with all required properties
     user: {
       id: post.user?.id || post.userId || 0,
       username: post.user?.username || 'unknown',
@@ -115,17 +117,18 @@ export function PostCard({ post }: { post: PostWithUser }) {
   
   // Fetch reactions (signals from other users)
   const { data: reactions = [] } = useQuery<(Reaction & { user: { id: number; displayName: string } })[]>({
-    queryKey: [`/api/posts/${post.id}/reactions`],
+    queryKey: [`/api/posts/${postWithDefaultUser.id}/reactions`],
     queryFn: getQueryFn(),
+    enabled: !!postWithDefaultUser.id,
   });
   
   // Create reaction mutation (sending signal)
   const reactionMutation = useMutation({
     mutationFn: async (type: string) => {
-      await apiRequest('POST', `/api/posts/${post.id}/reactions`, { type });
+      await apiRequest('POST', `/api/posts/${postWithDefaultUser.id}/reactions`, { type });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries([`/api/posts/${post.id}/reactions`]);
+      queryClient.invalidateQueries([`/api/posts/${postWithDefaultUser.id}/reactions`]);
     }
   });
   
@@ -137,7 +140,7 @@ export function PostCard({ post }: { post: PostWithUser }) {
   };
   
   // Format the post time
-  const timeAgo = formatDistance(new Date(post.createdAt), new Date(), { addSuffix: true });
+  const timeAgo = formatDistance(new Date(postWithDefaultUser.createdAt), new Date(), { addSuffix: true });
   
   // Group reactions by type for display
   const reactionCounts: Record<string, { count: number, users: string[] }> = {};
@@ -162,7 +165,7 @@ export function PostCard({ post }: { post: PostWithUser }) {
   };
   
   // Generate a military-style code for the post
-  const postCode = `ZYN-${post.id.toString().padStart(4, '0')}`;
+  const postCode = `ZYN-${postWithDefaultUser.id.toString().padStart(4, '0')}`;
   
   // Tactical Zyn puns for flavor descriptions
   const getFlavorDescription = (flavor: string) => {
@@ -212,15 +215,15 @@ export function PostCard({ post }: { post: PostWithUser }) {
                 {postWithDefaultUser.user.displayName}
               </Link>
               <span className="ml-2 text-xs bg-primary/10 px-1.5 py-0.5 rounded-sm text-primary font-medium">
-                {getNicotineRank(post.nicotineStrength)}
+                {getNicotineRank(postWithDefaultUser.nicotineStrength)}
               </span>
             </div>
             <div className="flex items-center text-xs text-muted space-x-2">
               <span className="no-select">{timeAgo}</span>
-              {post.locationName && (
+              {postWithDefaultUser.locationName && (
                 <div className="flex items-center">
                   <MapPin size={12} className="mr-1" />
-                  <span>{post.locationName}</span>
+                  <span>{postWithDefaultUser.locationName}</span>
                 </div>
               )}
             </div>
@@ -235,11 +238,11 @@ export function PostCard({ post }: { post: PostWithUser }) {
           </div>
           <div>
             <h3 className="font-heading text-primary font-bold tracking-wide mb-1.5">
-              {post.title.toUpperCase()}
+              {postWithDefaultUser.title.toUpperCase()}
             </h3>
-            {post.description && (
+            {postWithDefaultUser.description && (
               <div className="text-sm text-primary/80 mb-3 pl-2 border-l-2 border-accent/30">
-                {post.description}
+                {postWithDefaultUser.description}
               </div>
             )}
           </div>
@@ -255,7 +258,7 @@ export function PostCard({ post }: { post: PostWithUser }) {
               </div>
               <div>
                 <div className="text-xs text-muted">STRENGTH</div>
-                <div className="text-sm font-semibold">{formatNicotineStrength(post.nicotineStrength)}</div>
+                <div className="text-sm font-semibold">{formatNicotineStrength(postWithDefaultUser.nicotineStrength)}</div>
               </div>
             </div>
             
@@ -265,7 +268,7 @@ export function PostCard({ post }: { post: PostWithUser }) {
               </div>
               <div>
                 <div className="text-xs text-muted">FLAVOR</div>
-                <div className="text-sm font-semibold">{getFlavorDescription(post.flavor)}</div>
+                <div className="text-sm font-semibold">{getFlavorDescription(postWithDefaultUser.flavor)}</div>
               </div>
             </div>
             
@@ -275,30 +278,30 @@ export function PostCard({ post }: { post: PostWithUser }) {
               </div>
               <div>
                 <div className="text-xs text-muted">STATUS</div>
-                <div className="text-sm font-semibold">{moodToTacticalTerm[post.mood.toLowerCase()] || post.mood}</div>
+                <div className="text-sm font-semibold">{moodToTacticalTerm[postWithDefaultUser.mood.toLowerCase()] || postWithDefaultUser.mood}</div>
               </div>
             </div>
             
-            {post.duration && (
+            {postWithDefaultUser.duration && (
               <div className="flex items-center">
                 <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center mr-2">
                   <Clock size={14} className="text-primary" />
                 </div>
                 <div>
                   <div className="text-xs text-muted">DURATION</div>
-                  <div className="text-sm font-semibold">{formatDuration(post.duration)}</div>
+                  <div className="text-sm font-semibold">{formatDuration(postWithDefaultUser.duration)}</div>
                 </div>
               </div>
             )}
           </div>
         </div>
         
-        {post.imageUrl && (
+        {postWithDefaultUser.imageUrl && (
           <div className="rounded-ios overflow-hidden mb-4 border border-primary/10 shadow-tactical">
             <div className="relative">
               <img 
-                src={post.imageUrl} 
-                alt={post.title} 
+                src={postWithDefaultUser.imageUrl} 
+                alt={postWithDefaultUser.title} 
                 className="w-full object-cover"
                 style={{ maxHeight: '300px' }}
               />
@@ -308,7 +311,7 @@ export function PostCard({ post }: { post: PostWithUser }) {
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-white p-2">
                 <div className="text-xs">OPERATION LOCATION</div>
                 <div className="text-sm font-semibold">
-                  {post.locationName || 'CLASSIFIED'}
+                  {postWithDefaultUser.locationName || 'CLASSIFIED'}
                 </div>
               </div>
             </div>
@@ -362,7 +365,7 @@ export function PostCard({ post }: { post: PostWithUser }) {
         
         {showComments && (
           <div className="mt-3 w-full">
-            <CommentSection postId={post.id} />
+            <CommentSection postId={postWithDefaultUser.id} />
           </div>
         )}
       </CardFooter>

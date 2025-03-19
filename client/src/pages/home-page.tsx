@@ -70,6 +70,10 @@ export default function HomePage() {
     },
     onError: (error) => {
       console.error('Error fetching posts:', error);
+    },
+    // Disable automatic retries on 401 errors for a better experience
+    retry: (failureCount, error: any) => {
+      return !(error?.message === 'Unauthorized' || error?.status === 401) && failureCount < 3;
     }
   });
   
@@ -230,93 +234,19 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Debug: Add a pre-validation step */}
+              {/* Using our improved, null-safety PostCard component */}
               {posts.map(post => {
+                // Debug log for any post processing issues
                 console.log('Post being mapped:', post);
                 
-                // Create a backup post with all required values
-                const safePost = {
-                  ...post,
-                  user: post.user || {
-                    id: post.userId || 0,
-                    username: 'unknown',
-                    displayName: 'Unknown User',
-                    avatar: undefined
-                  }
-                };
+                // Make sure we have a valid post with a valid user object
+                if (!post || !post.id) {
+                  console.warn('Skipping invalid post:', post);
+                  return null;
+                }
                 
-                // Render our own simplified post card instead of using the component
-                return (
-                  <Card key={post?.id || 'unknown'} className="mb-4 border-1 border-primary/10">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center">
-                        <div className="w-11 h-11 rounded-full border-2 border-primary/20 bg-background flex items-center justify-center text-primary overflow-hidden mr-3">
-                          {safePost.user.avatar ? (
-                            <img 
-                              src={safePost.user.avatar} 
-                              alt={safePost.user.displayName} 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="font-heading font-bold text-lg">
-                              {safePost.user.displayName ? safePost.user.displayName.charAt(0).toUpperCase() : 'U'}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-heading font-semibold text-sm">
-                            {safePost.user.displayName || 'Unknown User'}
-                          </div>
-                          <div className="text-xs text-muted">
-                            {new Date(safePost.createdAt).toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="py-2">
-                      <h3 className="font-heading text-primary font-bold tracking-wide mb-1.5">
-                        {safePost.title.toUpperCase()}
-                      </h3>
-                      {safePost.description && (
-                        <div className="text-sm text-primary/80 mb-3">
-                          {safePost.description}
-                        </div>
-                      )}
-                      
-                      <div className="bg-background rounded-ios p-3 mb-4 border border-border/60">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="flex items-center">
-                            <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center mr-2">
-                              <Zap size={14} className="text-accent" />
-                            </div>
-                            <div>
-                              <div className="text-xs text-muted">STRENGTH</div>
-                              <div className="text-sm font-semibold">{formatNicotineStrength(safePost.nicotineStrength)}</div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center">
-                            <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center mr-2">
-                              <Shield size={14} className="text-primary" />
-                            </div>
-                            <div>
-                              <div className="text-xs text-muted">FLAVOR</div>
-                              <div className="text-sm font-semibold">{safePost.flavor}</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {safePost.locationName && (
-                        <div className="text-xs text-muted mb-3">
-                          <MapPin size={12} className="inline mr-1" />
-                          {safePost.locationName}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
+                // Use our improved PostCard component with built-in error handling
+                return <PostCard key={post.id} post={post} />;
               })}
             </div>
           )}

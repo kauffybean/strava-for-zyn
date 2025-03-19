@@ -44,14 +44,17 @@ const sessionConfig = {
   cookie: {
     secure: false, // set to true in production with HTTPS
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days for better persistence
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days for better persistence
+    sameSite: 'lax' // helps with CSRF protection while allowing normal navigation
   },
   store: storage.sessionStore
 };
 
+// Always set trust proxy for Replit environment
+app.set('trust proxy', 1);
+
 // In production, set secure cookies
 if (app.get('env') === 'production') {
-  app.set('trust proxy', 1);
   sessionConfig.cookie.secure = true;
 }
 

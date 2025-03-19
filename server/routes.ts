@@ -15,6 +15,48 @@ const isAuthenticated = (req: Request, res: Response, next: Function) => {
 export function registerRoutes(app: Express): Server {
   // Sets up auth routes
   setupAuth(app);
+  
+  // Add middleware to sanitize API responses for consistent user objects
+  app.use((req, res, next) => {
+    const originalJson = res.json;
+    
+    res.json = function(body) {
+      // Helper function to sanitize user objects
+      const sanitizeUser = (user: any) => {
+        if (!user) return null;
+        return {
+          id: user.id || 0,
+          username: user.username || 'unknown',
+          displayName: user.displayName || 'Unknown User',
+          avatar: user.avatar || null,
+          bio: user.bio || undefined,
+          createdAt: user.createdAt || new Date()
+        };
+      };
+      
+      // Process arrays of objects that might contain user property
+      if (Array.isArray(body)) {
+        body = body.map(item => {
+          if (item && typeof item === 'object') {
+            if (item.user) {
+              item.user = sanitizeUser(item.user);
+            }
+          }
+          return item;
+        });
+      } 
+      // Process single object with user property
+      else if (body && typeof body === 'object') {
+        if (body.user) {
+          body.user = sanitizeUser(body.user);
+        }
+      }
+      
+      return originalJson.call(this, body);
+    };
+    
+    next();
+  });
 
   // Friend routes
   app.get("/api/friends", isAuthenticated, async (req, res) => {
@@ -183,6 +225,32 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Current user analytics route for homepage (must come before wildcard routes)
+  app.get("/api/users/analytics", isAuthenticated, async (req, res) => {
+    console.log('GET /api/users/analytics - User:', req.user);
+    try {
+      if (!req.user || !req.user.id) {
+        console.log('GET /api/users/analytics - No user found in request');
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      const userId = req.user.id;
+      console.log('GET /api/users/analytics - Fetching analytics for userId:', userId);
+      
+      try {
+        const analytics = await storage.getUserAnalytics(userId);
+        console.log('GET /api/users/analytics - Analytics result:', analytics);
+        res.json(analytics);
+      } catch (analyticsError) {
+        console.error('GET /api/users/analytics - Error fetching analytics:', analyticsError);
+        res.status(500).json({ error: "Failed to fetch user analytics" });
+      }
+    } catch (error) {
+      console.error('GET /api/users/analytics - Unexpected error:', error);
+      res.status(500).json({ error: "Failed to fetch user analytics" });
+    }
+  });
+  
+  // User analytics route with ID parameter
   app.get("/api/users/:id/analytics", isAuthenticated, async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
