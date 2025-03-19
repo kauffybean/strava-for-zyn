@@ -604,6 +604,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
+    <script src="/js/auth-utils.js"></script>
     <div class="app-container">
         <!-- Header -->
         <header class="header">
@@ -747,15 +748,18 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Auth check
+            // Initialize auth utilities
+            const auth = new ZynfantryAuth();
+            auth.init();
+            
+            // Auth check using our utilities
             const checkAuth = async () => {
                 try {
-                    const response = await fetch('/api/user', { credentials: 'include' });
-                    if (!response.ok) {
+                    const userData = await auth.getCurrentUser();
+                    if (!userData) {
                         // Not authenticated, redirect to login
                         window.location.href = '/';
                     } else {
-                        const userData = await response.json();
                         // Load user profile
                         loadUserProfile(userData);
                     }
@@ -1014,14 +1018,10 @@
                 }
             };
             
-            // Logout handler
+            // Logout handler using auth utilities
             document.getElementById('logout-link').addEventListener('click', async () => {
                 try {
-                    await fetch('/api/logout', { 
-                        method: 'POST',
-                        credentials: 'include'
-                    });
-                    localStorage.removeItem('user');
+                    await auth.logout();
                     window.location.href = '/';
                 } catch (error) {
                     console.error('Logout error:', error);

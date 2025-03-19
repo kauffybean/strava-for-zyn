@@ -18,6 +18,15 @@ function registerRoutes(app) {
   app.get('/api/test', (req, res) => {
     res.json({ message: 'API is working properly' });
   });
+  
+  // Session check route
+  app.get('/api/session-check', (req, res) => {
+    if (req.isAuthenticated()) {
+      res.json({ authenticated: true });
+    } else {
+      res.status(401).json({ authenticated: false });
+    }
+  });
 
   // Friend routes
   app.get("/api/friends", isAuthenticated, async (req, res) => {

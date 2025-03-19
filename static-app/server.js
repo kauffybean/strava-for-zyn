@@ -18,7 +18,18 @@ app.get('/health', (req, res) => {
   res.status(200).send('Server is healthy');
 });
 
-// Default route
+// Special routes for specific HTML files
+app.get('/feed.html', (req, res) => {
+  console.log('Serving feed.html');
+  res.sendFile(path.join(__dirname, 'feed.html'));
+});
+
+app.get('/post.html', (req, res) => {
+  console.log('Serving post.html');
+  res.sendFile(path.join(__dirname, 'post.html'));
+});
+
+// Default route for all other requests
 app.get('*', (req, res) => {
   console.log('Serving index.html');
   res.sendFile(path.join(__dirname, 'index.html'));

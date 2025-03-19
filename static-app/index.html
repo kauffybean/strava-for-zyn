@@ -459,9 +459,14 @@
         </div>
     </div>
     
+    <script src="/js/auth-utils.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Zynfantry landing page loaded successfully');
+            
+            // Initialize auth
+            const auth = new ZynfantryAuth();
+            auth.init();
             
             // Get elements
             const loginTab = document.getElementById('login-tab');
@@ -514,8 +519,8 @@
                     const userData = await response.json();
                     console.log('Login successful:', userData);
                     
-                    // Store user data and redirect to dashboard
-                    localStorage.setItem('user', JSON.stringify(userData));
+                    // Store user data and redirect to dashboard using auth utilities
+                    auth.storeUser(userData);
                     window.location.href = "/feed.html";
                     
                 } catch (error) {
@@ -551,8 +556,8 @@
                     const userData = await response.json();
                     console.log('Registration successful:', userData);
                     
-                    // Store user data and redirect to dashboard
-                    localStorage.setItem('user', JSON.stringify(userData));
+                    // Store user data and redirect to dashboard using auth utilities
+                    auth.storeUser(userData);
                     window.location.href = "/feed.html";
                     
                 } catch (error) {
@@ -561,35 +566,8 @@
                 }
             });
             
-            // Check if user is already logged in
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                try {
-                    const userData = JSON.parse(storedUser);
-                    checkSession(userData);
-                } catch (error) {
-                    console.error('Error parsing stored user data:', error);
-                    localStorage.removeItem('user');
-                }
-            }
-            
-            // Function to check if session is still valid
-            async function checkSession(userData) {
-                try {
-                    const response = await fetch('/api/user', { credentials: 'include' });
-                    
-                    if (response.ok) {
-                        const currentUser = await response.json();
-                        window.location.href = "/feed.html";
-                    } else {
-                        // Session expired or invalid, clear storage
-                        localStorage.removeItem('user');
-                    }
-                } catch (error) {
-                    console.error('Session check error:', error);
-                    // If there's an error (like network issues), don't log the user out
-                }
-            }
+            // Auth utilities already handles session checking on page load
+            // The init function in auth-utils.js will redirect to feed.html if authenticated
             
             // Function to show dashboard
             function showDashboard(user) {
@@ -624,14 +602,10 @@
                 authSection.style.display = 'none';
                 dashboardSection.style.display = 'block';
                 
-                // Add logout functionality
+                // Add logout functionality using auth utilities
                 document.getElementById('logout-button').addEventListener('click', async () => {
                     try {
-                        await fetch('/api/logout', { 
-                            method: 'POST',
-                            credentials: 'include'
-                        });
-                        localStorage.removeItem('user');
+                        await auth.logout();
                         
                         // Show auth, hide dashboard
                         authSection.style.display = 'flex';

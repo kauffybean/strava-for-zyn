@@ -540,23 +540,19 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Auth check
-            const checkAuth = async () => {
-                try {
-                    const response = await fetch('/api/user', { credentials: 'include' });
-                    if (!response.ok) {
-                        // Not authenticated, redirect to login
-                        window.location.href = '/';
-                    }
-                } catch (error) {
-                    console.error('Auth check failed:', error);
-                    // If there's an error, redirect to login
-                    window.location.href = '/';
-                }
-            };
+            // Initialize Auth Utils
+            const auth = new ZynfantryAuth();
             
-            // Check authentication on page load
-            checkAuth();
+            // Protect this route - only authenticated users can access
+            auth.protectRoute();
+            
+            // Get user data
+            auth.getCurrentUser().then(user => {
+                if (user) {
+                    console.log('Authenticated as:', user.displayName);
+                    // Update any user-specific UI elements here if needed
+                }
+            });
             
             // Set default time to now
             const now = new Date();
@@ -591,12 +587,9 @@
             // Logout handler
             document.getElementById('logout-link').addEventListener('click', async () => {
                 try {
-                    await fetch('/api/logout', { 
-                        method: 'POST',
-                        credentials: 'include'
-                    });
-                    localStorage.removeItem('user');
-                    window.location.href = '/';
+                    // Use auth utilities for logout
+                    await auth.logout();
+                    // Redirect happens automatically in the auth utilities
                 } catch (error) {
                     console.error('Logout error:', error);
                 }
@@ -671,6 +664,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
+    <script src="/js/auth-utils.js"></script>
             
     <script>
         document.addEventListener('DOMContentLoaded', () => {
