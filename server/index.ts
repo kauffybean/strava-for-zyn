@@ -2,10 +2,11 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { registerRoutes } from './routes';
 
 // Node.js path resolution for CommonJS compatibility
-const __dirname = path.resolve();
+const __dirname = process.cwd();
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000');
@@ -24,11 +25,29 @@ app.use(cors({
 
 const server = registerRoutes(app);
 
+// Serve client assets in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'client/build')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build/index.html'));
-  });
+  // Client folder could be different in production vs. development
+  const clientPath = path.join(__dirname, 'client/dist');
+  const clientPathAlt = path.join(__dirname, 'client/build');
+  
+  // Check if client/dist exists, otherwise try client/build
+  const clientFolder = fs.existsSync(clientPath) ? clientPath : 
+                      (fs.existsSync(clientPathAlt) ? clientPathAlt : null);
+  
+  if (clientFolder) {
+    app.use(express.static(clientFolder));
+    app.get('*', (req, res) => {
+      // Skip API routes
+      if (req.path.startsWith('/api/')) {
+        return;
+      }
+      res.sendFile(path.join(clientFolder, 'index.html'));
+    });
+    console.log(`Serving static files from ${clientFolder}`);
+  } else {
+    console.warn('Client build folder not found. Static files will not be served.');
+  }
 }
 
 server.listen(PORT, '0.0.0.0', () => {
