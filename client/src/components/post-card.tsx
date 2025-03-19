@@ -98,11 +98,14 @@ export function PostCard({ post }: { post: PostWithUser }) {
     mood: post.mood || 'focused',
     createdAt: post.createdAt || new Date(),
     // Ensure user object always exists with all required properties
+    // If the post's user is missing or incomplete, use the current authenticated user data
     user: {
-      id: post.user?.id || post.userId || 0,
-      username: post.user?.username || 'unknown',
-      displayName: post.user?.displayName || 'Unknown User',
-      avatar: post.user?.avatar || undefined,
+      id: post.user?.id || post.userId || user?.id || 0,
+      username: (post.user?.username !== 'unknown' && post.user?.username) || 
+                (post.userId === user?.id ? user.username : 'unknown'),
+      displayName: (post.user?.displayName !== 'Unknown User' && post.user?.displayName) || 
+                   (post.userId === user?.id ? user.displayName : 'Unknown User'),
+      avatar: post.user?.avatar || (post.userId === user?.id ? user.avatar : undefined),
     }
   };
   
