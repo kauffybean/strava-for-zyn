@@ -485,7 +485,7 @@
             // Auth check
             const checkAuth = async () => {
                 try {
-                    const response = await fetch('/api/user');
+                    const response = await fetch('/api/user', { credentials: 'include' });
                     if (!response.ok) {
                         // Not authenticated, redirect to login
                         window.location.href = '/';
@@ -533,7 +533,10 @@
             // Logout handler
             document.getElementById('logout-link').addEventListener('click', async () => {
                 try {
-                    await fetch('/api/logout', { method: 'POST' });
+                    await fetch('/api/logout', { 
+                        method: 'POST',
+                        credentials: 'include'
+                    });
                     localStorage.removeItem('user');
                     window.location.href = '/';
                 } catch (error) {
@@ -593,6 +596,7 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
+                        credentials: 'include',
                         body: JSON.stringify(formData)
                     });
                     

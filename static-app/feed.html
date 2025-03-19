@@ -732,7 +732,7 @@
             // Auth check
             const checkAuth = async () => {
                 try {
-                    const response = await fetch('/api/user');
+                    const response = await fetch('/api/user', { credentials: 'include' });
                     if (!response.ok) {
                         // Not authenticated, redirect to login
                         window.location.href = '/';
@@ -788,14 +788,14 @@
             const loadUserStats = async (userId) => {
                 try {
                     // Get user's posts
-                    const postsResponse = await fetch(`/api/users/${userId}/posts`);
+                    const postsResponse = await fetch(`/api/users/${userId}/posts`, { credentials: 'include' });
                     if (postsResponse.ok) {
                         const posts = await postsResponse.json();
                         document.getElementById('post-count').textContent = posts.length;
                     }
                     
                     // Get user's friends
-                    const friendsResponse = await fetch('/api/friends');
+                    const friendsResponse = await fetch('/api/friends', { credentials: 'include' });
                     if (friendsResponse.ok) {
                         const friends = await friendsResponse.json();
                         document.getElementById('friend-count').textContent = friends.length;
@@ -808,7 +808,7 @@
             // Load posts
             const loadPosts = async () => {
                 try {
-                    const response = await fetch('/api/posts');
+                    const response = await fetch('/api/posts', { credentials: 'include' });
                     
                     if (!response.ok) {
                         throw new Error('Failed to fetch posts');
@@ -979,7 +979,10 @@
             // Logout handler
             document.getElementById('logout-link').addEventListener('click', async () => {
                 try {
-                    await fetch('/api/logout', { method: 'POST' });
+                    await fetch('/api/logout', { 
+                        method: 'POST',
+                        credentials: 'include'
+                    });
                     localStorage.removeItem('user');
                     window.location.href = '/';
                 } catch (error) {
