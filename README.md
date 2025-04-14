@@ -1,4 +1,4 @@
-# [ZYNFANTRY] Front-line Pouchers
+# ZYNFANTRY: Front-line Pouchers
 
 **Strava for Zyns. Built for the nicotine warriors of the free world.**
 
